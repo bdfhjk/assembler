@@ -16,6 +16,7 @@ parse:
     mov ebp, esp
     sub esp, 4      ; Local variables allocation
     push esi
+    push edi
     push ebx
     mov ebx, [ebp+8]
     mov eax, 0
@@ -31,7 +32,15 @@ get_length_loop:
     jmp get_length_loop
 
 get_length_stage_2:
+    cmp BYTE [ebx], 45
+    jne get_length_stage_3
+    dec eax
+
+get_length_stage_3:    
+    mov esi, eax
+
     pop ebx
+    pop edi
     pop esi
     mov esp, ebp
     pop ebp
