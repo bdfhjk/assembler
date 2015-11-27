@@ -18,14 +18,19 @@ parse:
     push esi
     push ebx
     mov ebx, [ebp+8]
-
     mov eax, 0
+
+; Calculating the length of input string
 get_length:
-    cmp [ebx + eax] 0
+    mov eax, 0
 
-get_length_end:
+get_length_loop:
+    cmp BYTE [ebx + eax], 0
+    je get_length_stage_2
+    inc eax
+    jmp get_length_loop
 
-
+get_length_stage_2:
     pop ebx
     pop esi
     mov esp, ebp
