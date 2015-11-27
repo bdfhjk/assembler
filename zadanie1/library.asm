@@ -58,34 +58,57 @@ save_number:
 
 save_number_handle_plus:
     mov BYTE [edi], 192     ;1100 0000
-    mov eax, 1
+    mov eax, 0
     jmp save_number_stage_2
 
 save_number_handle_minus:
     mov BYTE [edi], 208     ;1101 0000
-    mov eax, 0
+    mov eax, 1
 
 save_number_stage_2:
-    mov ecx, 1
-    mov edx, 1
+    mov cl, 1
+    mov edx, 0
 
 save_number_loop:
-    cmp ecx, 1
+    cmp cl, 1
     je save_number_low_byte
 
-save_number_low_byte:
-    add BYTE [edi + edx], [ebx + eax]
-    sub BYTE [edi + edx], 48 
-    mov ecx, 0
-    inc edx
+save_number_high_byte:
+    mov BYTE [edi + edx], 0
+    mov ch, [ebx + eax]
+    add [edi + edx], ch
+    sub BYTE [edi + edx], 48
+    shl BYTE [edi + edx], 4
+    mov cl, 1
     inc eax
-    cmp eax, esi    ; ???
+    cmp BYTE [ebx + eax], 0
     je save_number_finish
     jmp save_number_loop
 
-save_number_high_byte:
-save_number_finish:
+save_number_low_byte:
+    mov ch, [ebx + eax]
+    add [edi + edx], ch
+    sub BYTE [edi + edx], 48 
+    mov cl, 0
+    inc edx
+    inc eax
+    cmp BYTE [ebx + eax], 0
+    je save_number_finish
+    jmp save_number_loop
 
+save_number_finish:
+    cmp cl, 1
+    je save_number_finish_low
+
+save_number_finish_high:
+    mov BYTE [edi + edx], 240    ;1111 0000
+    jmp finish
+
+save_number_finish_low:
+    add BYTE [edi + edx], 15
+
+finish:
+    mov eax, edi
     pop edx
     pop ecx
     pop ebx

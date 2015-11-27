@@ -1,10 +1,10 @@
 main: main.c library.o
-	gcc -m32 -o main main.c library.o
+	gcc -g -m32 -o main main.c library.o
 
 .SECONDARY:
 
 %.o: %.asm
-	nasm -f elf32 $<
+	nasm -g -f elf32 $<
 
 
 %: %.o
