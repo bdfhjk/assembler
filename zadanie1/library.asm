@@ -1,4 +1,5 @@
 section .text
+extern malloc
 global parse
 
 ; http://www.cs.dartmouth.edu/~sergey/cs108/tiny-guide-to-x86-assembly.pdf
@@ -31,14 +32,30 @@ get_length_loop:
     inc eax
     jmp get_length_loop
 
+; Decreasing result if the first character is -
 get_length_stage_2:
     cmp BYTE [ebx], 45
     jne get_length_stage_3
     dec eax
 
+; Saving result in ESI
 get_length_stage_3:    
     mov esi, eax
 
+allocate_memory:
+    ; Divide by 2 and add 2 to previously calculated size
+    shr eax, 1
+    add eax, 2
+    push eax
+    call malloc
+    add esp, 4      ; Restore the stack 
+    mov edi, eax    ; Save created pointer in EDI
+
+save_number:
+    cmp BYTE [ebx], 45
+    je save_number_handle_minus
+
+save_number_handle_minus:
     pop ebx
     pop edi
     pop esi
