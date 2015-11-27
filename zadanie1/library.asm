@@ -11,14 +11,15 @@ global parse
 
 ; bcd* parse(char* napis)
 ; [EBP-4] - the size of number
-parse:                   
-    
+parse: 
     push ebp
     mov ebp, esp
     sub esp, 4      ; Local variables allocation
     push esi
     push edi
     push ebx
+    push ecx
+    push edx
     mov ebx, [ebp+8]
     mov eax, 0
 
@@ -55,7 +56,38 @@ save_number:
     cmp BYTE [ebx], 45
     je save_number_handle_minus
 
+save_number_handle_plus:
+    mov BYTE [edi], 192     ;1100 0000
+    mov eax, 1
+    jmp save_number_stage_2
+
 save_number_handle_minus:
+    mov BYTE [edi], 208     ;1101 0000
+    mov eax, 0
+
+save_number_stage_2:
+    mov ecx, 1
+    mov edx, 1
+
+save_number_loop:
+    cmp ecx, 1
+    je save_number_low_byte
+
+save_number_low_byte:
+    add BYTE [edi + edx], [ebx + eax]
+    sub BYTE [edi + edx], 48 
+    mov ecx, 0
+    inc edx
+    inc eax
+    cmp eax, esi    ; ???
+    je save_number_finish
+    jmp save_number_loop
+
+save_number_high_byte:
+save_number_finish:
+
+    pop edx
+    pop ecx
     pop ebx
     pop edi
     pop esi
