@@ -2,7 +2,8 @@
 #include "main.h"
 
 int main (int argc, char* args[]) {
-    int wynik = parse("-123123");
-    printf("Wynik=%d\n", wynik);
-    return wynik;
+    bcd* wynik = parse("123");
+    char* wynik2 = unparse(wynik);
+    printf("Wynik=%s\n", wynik2);
+    return 0;
 }
