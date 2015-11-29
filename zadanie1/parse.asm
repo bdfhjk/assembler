@@ -1,25 +1,14 @@
 section .text
 extern malloc
 global parse
-
-; http://www.cs.dartmouth.edu/~sergey/cs108/tiny-guide-to-x86-assembly.pdf
-
-; Function parameters [EBP+8], [EBP+12], ...
-; Local variables [EBP-4], [EBP-8], ...
-; Caller-saved registers: EBX, ECX, EDX, EDI, ESI, EBP
+%include "shared.asm"
 
 
 ; bcd* parse(char* napis)
-; [EBP-4] - the size of number
+
+
 parse: 
-    push ebp
-    mov ebp, esp
-    sub esp, 4      ; Local variables allocation
-    push esi
-    push edi
-    push ebx
-    push ecx
-    push edx
+    prologue 0		; 0 local variables on the stack
     mov ebx, [ebp+8]
     mov eax, 0
 
@@ -109,11 +98,5 @@ save_number_finish_low:
 
 finish:
     mov eax, edi
-    pop edx
-    pop ecx
-    pop ebx
-    pop edi
-    pop esi
-    mov esp, ebp
-    pop ebp
+    epilogue
     ret
