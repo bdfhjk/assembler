@@ -8,8 +8,8 @@ global parse
 
 
 parse: 
-    prologue 0		; 0 local variables on the stack
-    mov ebx, [ebp+8]
+    prologue 0			; 0 local variables on the stack
+    mov ebx, [ebp+8]	; Move the first parameter to EBX
     mov eax, 0
 
 ; Calculating the length of input string
@@ -33,37 +33,47 @@ get_length_stage_3:
     mov esi, eax
 
 allocate_memory:
-    ; Divide by 2 and add 2 to previously calculated size
+    ; Ceil of (EAX divided by 2), add 2 for first and last special bytes
+    add eax, 1
     shr eax, 1
     add eax, 2
+    
+    ; Malloc call
     push eax
     call malloc
     add esp, 4      ; Restore the stack 
-    mov edi, eax    ; Save created pointer in EDI
+    
+    ; Save created pointer in EDI
+    mov edi, eax    
 
 save_number:
     cmp BYTE [ebx], 45
     je save_number_handle_minus
 
 save_number_handle_plus:
-    mov BYTE [edi], 192     ;1100 0000
+    mov BYTE [edi], 192 	;1100 0000
     mov eax, 0
     jmp save_number_stage_2
 
 save_number_handle_minus:
-    mov BYTE [edi], 208     ;1101 0000
+    mov BYTE [edi], 208  	;1101 0000
     mov eax, 1
 
 save_number_stage_2:
-    mov cl, 1
-    mov edx, 0
+    mov cl, 0				; High-half of byte
+    mov edx, 1				; 2nd byte			
+    and esi, 1				; Check in we need to save leading zero
+    cmp esi, 1				; If the digit number is odd
+    jne save_number_loop
+    mov BYTE [edi + edx], 0	; Clear the byte
+    mov cl, 1				; Start writting from the low byte
 
 save_number_loop:
     cmp cl, 1
     je save_number_low_byte
 
 save_number_high_byte:
-    cmp BYTE [ebx + eax], 0
+    cmp BYTE [ebx + eax], 0	; Null symbol
     je save_number_finish
     mov BYTE [edi + edx], 0
     mov ch, [ebx + eax]
@@ -90,11 +100,12 @@ save_number_finish:
     je save_number_finish_low
 
 save_number_finish_high:
-    mov BYTE [edi + edx], 240    ;1111 0000
+    mov BYTE [edi + edx], 240		;1111 0000
     jmp finish
 
 save_number_finish_low:
-    add BYTE [edi + edx], 15
+    inc edx
+    add BYTE [edi + edx], 240    	;1111 0000
 
 finish:
     mov eax, edi

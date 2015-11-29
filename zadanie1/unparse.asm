@@ -8,39 +8,37 @@ global unparse
 
 
 unparse: 
-    prologue 0		; 0 local variables on the stack
-    mov ebx, [ebp+8]
+    prologue 0			; 0 local variables on the stack
+    mov ebx, [ebp+8]	; Move the first parameter to EBX
     mov eax, 0
 
 ; Calculating the length of input string
 get_length:
-    mov eax, 0
+    mov eax, 1			; Setting the counter to start at second byte.
+					; First byte is reserved for number sign
 
 get_length_loop:
-    ;Checking the high nibble
-    mov ch, [ebx + eax]
-    shr ch, 4
-    cmp ch, 15          ;0000 1111
-    je get_length_stage_2
-    inc eax
-    ;Checking the low nibble
-    mov ch, [ebx + eax]
-    and ch, 15          ;0000 1111
-    cmp ch, 15          ;0000 1111
+    cmp BYTE [ebx + eax], 240	;1111 0000
     je get_length_stage_2
     inc eax
     jmp get_length_loop
 
-; Increasing result if the first character is -
 get_length_stage_2:
-    mov ch, [ebx]
+    dec eax 					; Decrease for sign value
+    shl eax, 1					; We need twice more memory					
+    mov ch, [ebx + 1]			; Check if the number have a leading 0
     shr ch, 4
-    cmp ch, 13          ;0000 1101
+    cmp ch, 0
     jne get_length_stage_3
+    dec eax
+
+get_length_stage_3:
+    cmp BYTE [ebx], 208			; Check if we need to increase size for '-' char
+    jne get_length_stage_4
     inc eax
 
-; Saving result in ESI
-get_length_stage_3:    
+; Save the result in ESI
+get_length_stage_4:    
     mov esi, eax
 
 allocate_memory:
@@ -52,9 +50,7 @@ allocate_memory:
     mov edi, eax    ; Save created pointer in EDI
 
 save_number:
-    mov ch, [ebx]
-    shr ch, 4
-    cmp ch, 13          ;0000 1101
+    cmp BYTE [ebx], 208	
     je save_number_handle_minus
 
 save_number_handle_plus:
@@ -66,19 +62,24 @@ save_number_handle_minus:
     mov eax, 1
 
 save_number_stage_2:
+    mov cl, 0
+    mov edx, 1
+    mov ch, [ebx + 1]			; Check if the number have a leading 0
+    shr ch, 4
+    cmp ch, 0
+    jne save_number_loop
     mov cl, 1
-    mov edx, 0
-
+ 
 save_number_loop:
     cmp cl, 1
     je save_number_low_byte
 
 save_number_high_byte:
     mov ch, [ebx + edx]
+    cmp ch, 240    ;1111 0000
+    je save_number_finish
     and ch, 240     ;1111 0000
     shr ch, 4
-    cmp ch, 15      ;0000 1111
-    je save_number_finish
     add ch, 48      ;'0'-0
     mov [edi + eax], ch
     mov cl, 1
@@ -88,8 +89,6 @@ save_number_high_byte:
 save_number_low_byte:
     mov ch, [ebx + edx]
     and ch, 15      ;0000 1111
-    cmp ch, 15      ;0000 1111
-    je save_number_finish
     add ch, 48      ;'0'-0
     mov [edi + eax], ch
     mov cl, 0

@@ -1,4 +1,5 @@
-main: main.c parse.o
+
+main: main.c parse.o unparse.o
 	gcc -g -m32 -o main main.c parse.o unparse.o
 
 .SECONDARY:
