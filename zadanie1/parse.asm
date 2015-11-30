@@ -75,17 +75,17 @@ save_number_loop:
 save_number_high_byte:
     cmp BYTE [ebx + eax], 0	; Null symbol
     je save_number_finish
-    mov BYTE [edi + edx], 0
+    mov BYTE [edi + edx], 0	; Clearing byte
     mov ch, [ebx + eax]
     add [edi + edx], ch
-    sub BYTE [edi + edx], 48
+    sub BYTE [edi + edx], 48	; '
     shl BYTE [edi + edx], 4
     mov cl, 1
     inc eax
     jmp save_number_loop
 
 save_number_low_byte:
-    cmp BYTE [ebx + eax], 0
+    cmp BYTE [ebx + eax], 0	; Null symbol
     je save_number_finish
     mov ch, [ebx + eax]
     add [edi + edx], ch

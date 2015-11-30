@@ -1,6 +1,5 @@
-
-main: main.c parse.o unparse.o
-	gcc -g -m32 -o main main.c parse.o unparse.o
+main: main.c parse.o unparse.o suma.o
+	gcc -g -m32 -o main main.c parse.o unparse.o suma.o
 
 .SECONDARY:
 
@@ -13,5 +12,5 @@ main: main.c parse.o unparse.o
 
 
 clean:
-	rm -f *.o *~
+	rm main -f *.o *~
 
