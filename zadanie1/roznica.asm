@@ -1,7 +1,7 @@
 section .text
 extern malloc
 extern free
-global suma
+global roznica
 %include "shared.asm"
 
 
@@ -15,10 +15,10 @@ suma:
     mov ecx, [ebp+12]	; Move the second parameter to ECX
     
     cmp BYTE [ebx+1], 0		; First parameter represent 0
-    je suma_return_2
+    je roznica_return_2
     
     cmp BYTE [ecx+1], 0		; Second parameter represent 0
-    je suma_return_1
+    je roznica_return_1
     
     compare
     addition_init
@@ -26,7 +26,7 @@ suma:
     mov ah, [ebx]
     mov al, [ecx]
     cmp ah, al
-    jne call_roznica
+    jne call_suma
     
     mov esi, [l1]
     inc esi
@@ -77,24 +77,25 @@ addition_loop_finish_carry:
     jc addition_loop_finish_carry
     adjust_and_exit
 
-call_roznica:
+call_suma:
     cmp ah, al
-    ja roznica_swap                     ; EBX - ujemna, ECX - dodatnia
+    ja suma_swap                     ; EBX - ujemna, ECX - dodatnia
     ;TODO psuje pocz. liczbe
-    ;swap ebx ecx
-    ;mov [ecx], 192                    ;1100 0000
+    ;mov [ecx], 208                    ;1101 0000
     ;push ebx
     ;push ecx
-    ;call roznica
+    ;call suma
+    ;add esp, 8      ; Restore the stack 
     epilogue
     ret
     
-    roznica_swap:
+    suma_swap:
     ;TODO psuje pocz. liczbe
     ;mov [ecx], 192                    ;1100 0000
     ;push ecx
     ;push ebx
     ;call roznica
+    ;add esp, 8      ; Restore the stack 
     epilogue
     ret
     
@@ -104,6 +105,9 @@ suma_return_1:
     ret
 
 suma_return_2:
+    mov dh, [ecx]			; 0 - x = -x we need to xor sign of the number
+    xor dh, 16				; 0001 0000 (swap between positive / negative sign)
+    mov [ecx], dh
     mov eax, ecx
     epilogue
     ret
