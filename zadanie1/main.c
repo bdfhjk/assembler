@@ -12,8 +12,8 @@ void test_suma_a(){
     char* w;
     bcd *a, *b, *c;
     
-    for(i = 0; i < 5000; i++)
-        for(j = 0; j < 5000; j++)
+    for(i = 0; i < 1500; i++)
+        for(j = 0; j < 1500; j++)
         {
             char str1[15];
             char str2[15];
