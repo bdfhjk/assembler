@@ -1,32 +1,33 @@
 section .text
 extern malloc
 extern free
+extern suma
 global roznica
 %include "shared.asm"
 
 
-; bcd* suma(bcd* liczba1 bcd* liczba2)
+; bcd *roznica(bcd *a, bcd *b);
 
 
-suma: 
+roznica: 
     prologue 0			; 0 local variables on the stack
 
     mov ebx, [ebp+8]	; Move the first parameter to EBX
     mov ecx, [ebp+12]	; Move the second parameter to ECX
-    
+        
+    cmp BYTE [ecx+1], 0		; Second parameter represent 0
+    je roznica_return_1
+
     cmp BYTE [ebx+1], 0		; First parameter represent 0
     je roznica_return_2
     
-    cmp BYTE [ecx+1], 0		; Second parameter represent 0
-    je roznica_return_1
+    mov ah, [ebx]			; If signs are different, we should use suma function
+    mov al, [ecx]
+    cmp ah, al
+    jne call_suma    
     
     compare
     addition_init
-
-    mov ah, [ebx]
-    mov al, [ecx]
-    cmp ah, al
-    jne call_suma
     
     mov esi, [l1]
     inc esi
@@ -37,77 +38,100 @@ suma:
     inc ecx                 ; Adding one for leading 0
     clc
     
-addition_loop:
+subtraction_loop:
     mov al, [edi + ecx]
-    adc al, [ebx + esi]
-    daa
+    sbb al, [ebx + esi]
+    das
     mov [edi + ecx], al
     dec esi
     dec ecx
-    jc addition_loop_carry
+    jc subtraction_loop_carry
 
-addition_loop_no_carry:
+subtraction_loop_no_carry:
     cmp BYTE [ebx + esi], 192        ;1100 0000
-    je addition_loop_finish
+    je subtraction_loop_finish
     cmp BYTE [ebx + esi], 208        ;1101 0000
-    je addition_loop_finish
+    je subtraction_loop_finish
     clc
-    jmp addition_loop
+    jmp subtraction_loop
 
-addition_loop_carry:
+subtraction_loop_carry:
     cmp BYTE [ebx + esi], 192        ;1100 0000
-    je addition_loop_finish_carry_init
+    je subtraction_loop_finish_carry_init
     cmp BYTE [ebx + esi], 208        ;1101 0000
-    je addition_loop_finish_carry_init
+    je subtraction_loop_finish_carry_init
     stc
-    jmp addition_loop
+    jmp subtraction_loop
     
-addition_loop_finish:
-    adjust_and_exit
-
-addition_loop_finish_carry_init:
+subtraction_loop_finish:
+    jmp adjust_sign
+    
+subtraction_loop_finish_carry_init:
     stc
 
-addition_loop_finish_carry:
+subtraction_loop_finish_carry:
     mov al, [edi + ecx]
-    adc al, 0
-    daa
+    sbb al, 0
+    das
     mov [edi + ecx], al
     dec ecx
-    jc addition_loop_finish_carry
+    jc subtraction_loop_finish_carry
+
+adjust_sign:
+    cmp BYTE [d], 1				; Check if we made a swap
+    je adjust_sign_exit
+    cmp BYTE [edi], 192				
+    je adjust_sign_make_negative
+
+adjust_sign_make_positive:
+    mov BYTE [edi], 192
+    jmp adjust_sign_exit
+
+adjust_sign_make_negative:
+    mov BYTE [edi], 208
+
+adjust_sign_exit:
     adjust_and_exit
 
 call_suma:
-    cmp ah, al
-    ja suma_swap                     ; EBX - ujemna, ECX - dodatnia
-    ;TODO psuje pocz. liczbe
-    ;mov [ecx], 208                    ;1101 0000
-    ;push ebx
-    ;push ecx
-    ;call suma
-    ;add esp, 8      ; Restore the stack 
+    cmp al, ah
+    ja suma_swap                     
+   
+    ; EBX - ujemna, ECX - dodatnia
+    mov BYTE [ecx], 208                    ;1101 0000
+    push ecx
+    push ebx
+    call suma
+    add esp, 8      ; Restore the stack
+    
     epilogue
     ret
     
     suma_swap:
-    ;TODO psuje pocz. liczbe
-    ;mov [ecx], 192                    ;1100 0000
-    ;push ecx
-    ;push ebx
-    ;call roznica
-    ;add esp, 8      ; Restore the stack 
+    ; EBX - dodatnia, ECX -  ujemna
+    mov BYTE [ecx], 192                    ;1100 0000
+    push ecx
+    push ebx
+    call suma
+    add esp, 8      ; Restore the stack
+    
     epilogue
     ret
-    
-suma_return_1:
+
+roznica_return_1:
     mov eax, ebx
     epilogue
     ret
 
-suma_return_2:
-    mov dh, [ecx]			; 0 - x = -x we need to xor sign of the number
-    xor dh, 16				; 0001 0000 (swap between positive / negative sign)
-    mov [ecx], dh
+roznica_return_2:
+    cmp BYTE [ecx], 208
+    je roznica_return_2_2
+    mov BYTE [ecx], 208                    ;1101 0000
     mov eax, ecx
+    epilogue
+    ret
+
+roznica_return_2_2:
+    mov BYTE [ecx], 192
     epilogue
     ret

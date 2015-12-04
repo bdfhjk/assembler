@@ -1,6 +1,7 @@
 section .text
 extern malloc
 extern free
+extern roznica
 global suma
 %include "shared.asm"
 
@@ -20,13 +21,13 @@ suma:
     cmp BYTE [ecx+1], 0		; Second parameter represent 0
     je suma_return_1
     
-    compare
-    addition_init
-
-    mov ah, [ebx]
+    mov ah, [ebx]			; If signs are different, we should use roznica function
     mov al, [ecx]
     cmp ah, al
-    jne call_roznica
+    jne call_roznica   
+    
+    compare
+    addition_init
     
     mov esi, [l1]
     inc esi
@@ -78,23 +79,28 @@ addition_loop_finish_carry:
     adjust_and_exit
 
 call_roznica:
-    cmp ah, al
-    ja roznica_swap                     ; EBX - ujemna, ECX - dodatnia
-    ;TODO psuje pocz. liczbe
-    ;swap ebx ecx
-    ;mov [ecx], 192                    ;1100 0000
-    ;push ebx
-    ;push ecx
-    ;call roznica
+    cmp al, ah
+    ja roznica_swap                     
+   
+    ; EBX - ujemna, ECX - dodatnia
+    xchg ebx, ecx
+    mov BYTE [ecx], 192                    ;1100 0000
+    push ecx
+    push ebx
+    call roznica
+    add esp, 8      ; Restore the stack
+    
     epilogue
     ret
     
     roznica_swap:
-    ;TODO psuje pocz. liczbe
-    ;mov [ecx], 192                    ;1100 0000
-    ;push ecx
-    ;push ebx
-    ;call roznica
+    ; EBX - dodatnia, ECX -  ujemna
+    mov BYTE [ecx], 192                    ;1100 0000
+    push ecx
+    push ebx
+    call roznica
+    add esp, 8      ; Restore the stack
+    
     epilogue
     ret
     
@@ -103,7 +109,7 @@ suma_return_1:
     epilogue
     ret
 
-suma_return_2:
+suma_return_2:	; TODO
     mov eax, ecx
     epilogue
     ret

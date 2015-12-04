@@ -7,6 +7,7 @@ section .data
     l2	DD	0	; Size of the second BCD number
     b	DD	0	; Iteration variable used by division and multiplication
     c	DD	0	; Iteration variable used by division and multiplication
+    d  DD 	0 	; 1 if compare switched registers, 0 otherwise
 
 %macro prologue 1
     ; Saving base pointer and stack pointer
@@ -69,6 +70,7 @@ section .data
 ; Set l1 and l2 acordingly
 %macro compare 0
     get_length_2 		            ; compare the length of numbers 
+    mov BYTE [d], 0
     mov eax, [l1]
     cmp eax, [l2]
     jb %%compare_finish       ; the first number must be smaller
@@ -78,14 +80,15 @@ section .data
 %%compare_loop:
     cmp BYTE [ebx+eax], 240		;1111 0000
     je %%compare_finish
-    mov edx, [ebx+eax]              ; compare bytes
-    cmp edx, [ecx+eax]
+    mov dh, [ebx+eax]              ; compare bytes
+    cmp dh, [ecx+eax]
     jb %%compare_finish
     ja %%compare_swap
     inc eax
     jmp %%compare_loop
     
 %%compare_swap:
+    mov BYTE [d], 1
     xchg ebx, ecx
     mov eax, [l1]
     mov edx, [l2]
@@ -142,6 +145,13 @@ section .data
 ; Remove possible trailinig zeros from BCD number at EDI, set it as return variable and exit function. 
 %macro adjust_and_exit 0
     get_length_2_internal edi, l2   ; Used to store actual size of variable
+    
+    cmp BYTE [l2], 1
+    je %%adjust_and_exit_one_byte
+
+    cmp BYTE [l2], 2
+    je %%adjust_and_exit_one_byte
+
     mov eax, [l2]
     mov [l1], eax                         ; Used to store previous size of variable
     mov eax, 1
@@ -150,6 +160,9 @@ section .data
     cmp BYTE [edi + eax], 0
     jne %%adjust_and_exit_allocate_memory
     dec DWORD [l2]
+    dec DWORD [l2]
+    cmp BYTE [l2], 3
+    jl %%adjust_and_exit_allocate_memory
     inc eax
     jmp %%adjust_and_exit_examine_loop
 
@@ -174,18 +187,25 @@ section .data
     mov edx, [edi]      ; Copy the sign of the number
     mov [eax], edx
     
-    mov esi, [l1]          ; ESI is the offset at EDX where the non-zero bytes start
-    sub esi, [l2]
+    mov esi, [l1]
     inc esi
-    mov ecx, 1
+    shr esi, 1		   ; ESI point to the number of bytes encoding digits
+    inc esi			   ; Now ESI point to the byte with the last digit of ESI (added 1 for sign)
     
+    mov ecx, [l2]
+    inc ecx
+    shr ecx, 1
+    inc ecx
+
 %%adjust_and_exit_loop:
     mov dh, [edi + esi]
     mov [eax + ecx], dh
-    cmp dh, 240                             ;1111 0000
+    
+    dec esi
+    dec ecx
+    cmp ecx, 0
     je %%adjust_and_exit_free
-    inc esi
-    inc ecx
+    
     jmp %%adjust_and_exit_loop
 
 %%adjust_and_exit_free:
@@ -202,6 +222,17 @@ section .data
     pop ecx
     epilogue
     ret
+    
+%%adjust_and_exit_one_byte:
+    cmp BYTE [edi + 1], 0
+    je %%adjust_and_exit_one_byte_negative_zero
+    mov eax, edi
+    epilogue
+    
+%%adjust_and_exit_one_byte_negative_zero:
+    mov BYTE [edi], 192
+    mov eax, edi
+    epilogue
 %endmacro
     
 

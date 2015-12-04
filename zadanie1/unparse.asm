@@ -58,6 +58,12 @@ save_number_handle_plus:
     jmp save_number_stage_2
 
 save_number_handle_minus:
+    cmp BYTE [ebx+1], 0					; -0 exception
+    jne save_number_handle_minus_stage_2	
+save_number_double_check:
+    cmp BYTE [ebx+2], 240
+    je save_number_handle_plus
+save_number_handle_minus_stage_2:
     mov BYTE [edi], 45     ;'-'
     mov eax, 1
 
