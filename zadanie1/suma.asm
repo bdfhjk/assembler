@@ -4,6 +4,7 @@ extern free
 extern roznica
 global suma
 %include "shared.asm"
+%include "shared_suma.asm"
 
 
 ; bcd* suma(bcd* liczba1 bcd* liczba2)
