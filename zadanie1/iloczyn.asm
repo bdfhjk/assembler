@@ -51,7 +51,7 @@ iloczyn:
 ;    jmp accumulation_loop
 
 ;accumulation_loop_finish:
-;    shift_left_bcd esi, [c]
+;    call_shift_left_bcd esi, [c]
 ;    call_suma esi, edi 
 ;    call_free esi
 ;    call_free edi
@@ -60,17 +60,4 @@ iloczyn:
 ;    jmp multiply_loop
 
 ;multiply_finish:
-;    call_free esi
-;    mov eax, [ebx]
-;    cmp eax, [ecx]
-;    je multiply_finish_positive
-
-;multiply_finish_negative:
-;    mov [edi], 208
-;    mov eax, edi
-;    epilogue
-
-;multiply_finish_positive:
-;    mov [edi], 192
-;    mov eax, edi
-;    epilogue
+;    multiply_shared_finish

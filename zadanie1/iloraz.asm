@@ -23,11 +23,15 @@ iloraz:
 
 ;division_loop_init:
 ;    mov [b], 1
-;    mov dh, ???
 ;    mov eax, [l2]
 ;    mov [c], eax
 
 ;accumulation_init:
 ;    call_free esi
 ;    create_zero_bcd esi
-;    put_fragment esi ecx [c]
+;    call_shift_right_bcd ecx [c]
+
+; TODO
+
+;division_finish:
+;    multiply_shared_finish

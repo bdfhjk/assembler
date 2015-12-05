@@ -1,5 +1,5 @@
-main: main.c parse.o unparse.o suma.o roznica.o iloczyn.o iloraz.o shift_left_bcd.o
-	gcc -g -m32 -lm -o main main.c parse.o unparse.o suma.o roznica.o iloczyn.o iloraz.o shift_left_bcd.o -lm
+main: main.c parse.o unparse.o suma.o roznica.o iloczyn.o iloraz.o shift_left_bcd.o shift_right_bcd.o
+	gcc -g -m32 -lm -o main main.c parse.o unparse.o suma.o roznica.o iloczyn.o iloraz.o shift_left_bcd.o shift_right_bcd.o -lm
 
 .SECONDARY:
 

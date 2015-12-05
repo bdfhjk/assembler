@@ -98,6 +98,33 @@ void test_shift_left_bcd(){
         printf("SHIFT_LEFT_BCD OK\n");
 }
 
+void test_shift_right_bcd(){
+    int i, j;
+    char* w;
+    bcd *a, *b, *c;
+    int shiftok = 1;
+    
+    for(i = -10; i < 10; i++)
+        for(j = 0; j < 10; j++){
+            char str1[15];
+            char str3[15];
+            sprintf(str1, "%d", i);
+            sprintf(str3, "%d", (int)i / (int)pow(10,j));
+
+            a = parse(str1);
+            c = shift_right_bcd(a, j);
+            w = unparse(c);
+
+            if (strcmp(w, str3) != 0) {
+                printf("SHIFT_RIGHT_BCD ERROR [i = %d | j = %d | %s = %s ]\n", i, j, w, str3);
+                shiftok = 0;
+            }
+        }
+
+    if (shiftok)
+        printf("SHIFT_RIGHT_BCD OK\n");
+}
+
 void test_iloczyn(){
     int i, j;
     char* w;
