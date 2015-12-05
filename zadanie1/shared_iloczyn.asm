@@ -1,21 +1,8 @@
-
+%include "shared.asm"
 
 %macro create_zero_2 0
-
-    mov eax, 3		; We need three bytes for each
-
-    ; Malloc call
-    push ecx
-    push edx
-    
-    push eax
-    call malloc
-    add esp, 4             ; Restore the stack 
-    
-    pop edx
-    pop ecx
-    
-    
+    call_malloc 3, edi
+    call_malloc 3, esi
 %endmacro
 
 shift_left_bcd:

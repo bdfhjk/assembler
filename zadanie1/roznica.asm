@@ -11,7 +11,7 @@ global roznica
 
 
 roznica: 
-    prologue 0              ; 0 local variables on the stack
+    prologue 0
 
     mov ebx, [ebp+8]        ; Move the first parameter to EBX
     mov ecx, [ebp+12]       ; Move the second parameter to ECX
@@ -25,7 +25,7 @@ roznica:
     mov ah, [ebx]           ; If signs are different, we should use suma function
     mov al, [ecx]
     cmp ah, al
-    jne call_suma    
+    jne call_suma
     
     compare
     addition_init
@@ -34,7 +34,7 @@ roznica:
     to_bytes ecx, [l2]
     inc ecx                 ; Adding one for leading 0
     clc
-    
+
 subtraction_loop:
     mov al, [edi + ecx]
     sbb al, [ebx + esi]
@@ -45,17 +45,17 @@ subtraction_loop:
     jc subtraction_loop_carry
 
 subtraction_loop_no_carry:
-    cmp BYTE [ebx + esi], 192        ;1100 0000
+    cmp BYTE [ebx + esi], 192              ;1100 0000
     je subtraction_loop_finish
-    cmp BYTE [ebx + esi], 208        ;1101 0000
+    cmp BYTE [ebx + esi], 208              ;1101 0000
     je subtraction_loop_finish
     clc
     jmp subtraction_loop
 
 subtraction_loop_carry:
-    cmp BYTE [ebx + esi], 192        ;1100 0000
+    cmp BYTE [ebx + esi], 192               ;1100 0000
     je subtraction_loop_finish_carry_init
-    cmp BYTE [ebx + esi], 208        ;1101 0000
+    cmp BYTE [ebx + esi], 208               ;1101 0000
     je subtraction_loop_finish_carry_init
     stc
     jmp subtraction_loop
@@ -75,9 +75,9 @@ subtraction_loop_finish_carry:
     jc subtraction_loop_finish_carry
 
 adjust_sign:
-    cmp BYTE [d], 1				; Check if we made a swap
+    cmp BYTE [d], 1                 ; Check if we made a swap
     je adjust_sign_exit
-    cmp BYTE [edi], 192				
+    cmp BYTE [edi], 192	
     je adjust_sign_make_negative
 
 adjust_sign_make_positive:
@@ -92,9 +92,9 @@ adjust_sign_exit:
 
 call_suma:
     cmp al, ah
-    ja suma_swap                     
+    ja suma_swap
    
-    ; EBX - ujemna, ECX - dodatnia
+    ; EBX - negative, ECX - positive
     mov BYTE [ecx], 208                    ;1101 0000
     push ecx
     push ebx
@@ -103,9 +103,9 @@ call_suma:
     
     epilogue
     ret
-    
-    suma_swap:
-    ; EBX - dodatnia, ECX -  ujemna
+
+suma_swap:
+    ; EBX - positive, ECX -  negative
     mov BYTE [ecx], 192                    ;1100 0000
     push ecx
     push ebx
