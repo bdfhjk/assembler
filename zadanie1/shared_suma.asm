@@ -1,3 +1,6 @@
+%ifndef MACROS_SUMA
+%define MACROS_SUMA
+
 ; Addition or substraction initialization
 %macro addition_init 0
 %%allocate_memory:
@@ -85,3 +88,5 @@
     mov eax, edi
     epilogue
 %endmacro
+
+%endif

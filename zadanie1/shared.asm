@@ -2,12 +2,16 @@
 ; Local variables [EBP-4], [EBP-8], ...
 ; Caller-saved registers: EBX, EDI, ESI, ESP, EBP
 
+%ifndef MACROS_SHARED
+%define MACROS_SHARED
+
 section .data
     l1  DD  0   ; Size of the first BCD number
     l2  DD  0   ; Size of the second BCD number
     b   DD  0   ; Iteration variable used by division and multiplication
     c   DD  0   ; Iteration variable used by division and multiplication
     d   DD  0   ; 1 if compare switched registers, 0 otherwise
+    e   DD  0   ; Used by write/read bcd
 
 %macro prologue 1
     ; Saving base pointer and stack pointer
@@ -98,11 +102,9 @@ section .data
 %macro call_malloc 2
     push ecx
     push edx
-    
     push %1
     call malloc
     add esp, 4             ; Restore the stack 
-    
     pop edx
     pop ecx
     mov %2, eax
@@ -112,30 +114,82 @@ section .data
     push ecx
     push edx
     push eax
-    
     push %1
     call free
     add esp, 4             ; Restore the stack 
-    
     pop eax
+    pop edx
+    pop ecx
+%endmacro
+
+%macro call_suma 2
+    push ecx
+    push edx
+    push %2
+    push %1
+    call suma
+    add esp, 8             ; Restore the stack 
+    pop edx
+    pop ecx
+%endmacro
+
+%macro call_roznica 2
+    push ecx
+    push edx
+    push %2
+    push %1
+    call roznica
+    add esp, 8             ; Restore the stack 
     pop edx
     pop ecx
 %endmacro
     
 %macro to_bytes 2
-    mov %1, %2
-    inc %1
-    shr %1, 1
+    mov DWORD %1, %2
+    inc DWORD %1
+    shr DWORD %1, 1
 %endmacro
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+;%macro write_bcd 4
+;    cmp %3, 1
+;    jne %%write_bcd_low_byte
+
+;%%write_bcd_high_byte:
+;    shl %4, 4                   ; Adjust to high byte
+;    add [ %1 + %2 ], %4
+;    mov %3, 1
+;    dec %2
+;    jmp %%write_bcd_finish
+
+;%%write_bcd_low_byte:
+;    mov BYTE [ %1 + %2 ], 0     ; Clearing byte
+;    add [ %1 + %2 ], %4         ; Adding to low byte
+;    mov %3, 0
+
+;%%write_bcd_finish:
+;    nop
+;
+;%endmacro
+;
+;%macro read_bcd 4
+;    cmp %3, 1
+;    jne %%read_bcd_low_byte
+;
+;%%read_bcd_high_byte:
+;    mov BYTE %4, [ %1 + %2 ]
+;    and %4, 240                     ; 1111 0000
+;    shr %4, 4
+;    mov %3, 1
+;    dec %2
+;    jmp %%read_bcd_finish
+
+;%%read_bcd_low_byte:
+;    mov BYTE %4, [ %1 + %2 ]
+;    and %4, 15                      ; 0000 1111
+;    mov %3, 0
+
+;%%read_bcd_finish:
+;    nop
+;%endmacro
+
+%endif

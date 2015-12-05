@@ -25,7 +25,7 @@ suma:
     mov ah, [ebx]           ; If signs are different, we should use roznica function
     mov al, [ecx]
     cmp ah, al
-    jne call_roznica
+    jne go_roznica
     
     compare
     addition_init
@@ -75,7 +75,7 @@ addition_loop_finish_carry:
     jc addition_loop_finish_carry
     adjust_and_exit
 
-call_roznica:
+go_roznica:
     cmp al, ah
     ja roznica_swap
    
