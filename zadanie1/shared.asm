@@ -3,7 +3,7 @@
 ; Caller-saved registers: EBX, ECX, EDX, EDI, ESI, EBP
 
 section .data
-    l1	DD	0	; Size of the first BCD number
+    l1  DD	0	; Size of the first BCD number
     l2	DD	0	; Size of the second BCD number
     b	DD	0	; Iteration variable used by division and multiplication
     c	DD	0	; Iteration variable used by division and multiplication
@@ -17,18 +17,14 @@ section .data
     ; Local variables allocation
     sub esp, %1      
 
-    ; Saving caller-save registers
+    ; Saving calle-save registers
     push esi
     push edi
     push ebx
-    push ecx
-    push edx
 %endmacro
 
 %macro epilogue 0
-    ; Restoring caller-save registers
-    pop edx
-    pop ecx
+    ; Restoring calle-save registers
     pop ebx
     pop edi
     pop esi
@@ -99,9 +95,38 @@ section .data
     nop
 %endmacro
 
-
+%macro call_malloc 2
+    push ecx
+    push edx
     
+    push %1
+    call malloc
+    add esp, 4             ; Restore the stack 
+    
+    pop edx
+    pop ecx
+    mov %2, eax
+%endmacro
 
+%macro call_free 1
+    push ecx
+    push edx
+    push eax
+    
+    push %1
+    call free
+    add esp, 4             ; Restore the stack 
+    
+    pop eax
+    pop edx
+    pop ecx
+%endmacro
+    
+%macro to_bytes 2
+    mov %1, %2
+    inc %1
+    shr %1, 1
+%endmacro
     
     
     

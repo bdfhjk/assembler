@@ -38,13 +38,7 @@ allocate_memory:
     shr eax, 1
     add eax, 2
     
-    ; Malloc call
-    push eax
-    call malloc
-    add esp, 4      ; Restore the stack 
-    
-    ; Save created pointer in EDI
-    mov edi, eax    
+    call_malloc eax, edi
 
 save_number:
     cmp BYTE [ebx], 45

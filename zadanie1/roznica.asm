@@ -11,18 +11,18 @@ global roznica
 
 
 roznica: 
-    prologue 0			; 0 local variables on the stack
+    prologue 0              ; 0 local variables on the stack
 
-    mov ebx, [ebp+8]	; Move the first parameter to EBX
-    mov ecx, [ebp+12]	; Move the second parameter to ECX
+    mov ebx, [ebp+8]        ; Move the first parameter to EBX
+    mov ecx, [ebp+12]       ; Move the second parameter to ECX
         
-    cmp BYTE [ecx+1], 0		; Second parameter represent 0
+    cmp BYTE [ecx+1], 0     ; Second parameter represent 0
     je roznica_return_1
 
-    cmp BYTE [ebx+1], 0		; First parameter represent 0
+    cmp BYTE [ebx+1], 0     ; First parameter represent 0
     je roznica_return_2
     
-    mov ah, [ebx]			; If signs are different, we should use suma function
+    mov ah, [ebx]           ; If signs are different, we should use suma function
     mov al, [ecx]
     cmp ah, al
     jne call_suma    
@@ -30,12 +30,8 @@ roznica:
     compare
     addition_init
     
-    mov esi, [l1]
-    inc esi
-    shr esi, 1
-    mov ecx, [l2]
-    inc ecx
-    shr ecx, 1
+    to_bytes esi, [l1]
+    to_bytes ecx, [l2]
     inc ecx                 ; Adding one for leading 0
     clc
     
