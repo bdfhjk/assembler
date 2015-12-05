@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "main.h"
+#include <math.h>
 
 void test_suma_roznica(){
     int i, j;
@@ -68,6 +69,93 @@ void test_parse_unparse(){
 
     if (parseok)
         printf("PARSE OK\n");
+}
+
+void test_shift_left_bcd(){
+    int i, j;
+    char* w;
+    bcd *a, *b, *c;
+    int shiftok = 1;
+    
+    for(i = -10; i < 10; i++)
+        for(j = 0; j < 10; j++){
+            char str1[15];
+            char str3[15];
+            sprintf(str1, "%d", i);
+            sprintf(str3, "%d", i * (int)pow(10,j));
+
+            a = parse(str1);
+            c = shift_left_bcd(a, j);
+            w = unparse(c);
+
+            if (strcmp(w, str3) != 0) {
+                printf("SHIFT_LEFT_BCD ERROR [i = %d | j = %d | %s = %s ]\n", i, j, w, str3);
+                shiftok = 0;
+            }
+        }
+
+    if (shiftok)
+        printf("SHIFT_LEFT_BCD OK\n");
+}
+
+void test_iloczyn(){
+    int i, j;
+    char* w;
+    bcd *a, *b, *c;
+    int iloczynok = 1;
+    
+    for(i = -10; i < 10; i++)
+        for(j = -10; j < 10; j++){
+            char str1[15];
+            char str2[15];
+            char str3[15];
+            sprintf(str1, "%d", i);
+            sprintf(str2, "%d", j);
+            sprintf(str3, "%d", i*j);
+
+            a = parse(str1);
+            b = parse(str2);
+            c = iloczyn(a, b);
+            w = unparse(c);
+
+            if (strcmp(w, str3) != 0) {
+                printf("ILOCZYN ERROR [i = %d | j = %d | %s = %s ]\n", i, j, w, str3);
+                iloczynok = 0;
+            }
+        }
+
+    if (iloczynok)
+        printf("ILOCZYN OK\n");
+}
+
+void test_iloraz(){
+    int i, j;
+    char* w;
+    bcd *a, *b, *c;
+    int ilorazok = 1;
+    
+    for(i = -10; i < 10; i++)
+        for(j = 1; j < 20; j++){
+            char str1[15];
+            char str2[15];
+            char str3[15];
+            sprintf(str1, "%d", i);
+            sprintf(str2, "%d", j);
+            sprintf(str3, "%d", i/j);
+
+            a = parse(str1);
+            b = parse(str2);
+            c = iloraz(a, b);
+            w = unparse(c);
+
+            if (strcmp(w, str3) != 0) {
+                printf("ILORAZ ERROR [i = %d | j = %d | %s = %s ]\n", i, j, w, str3);
+                ilorazok = 0;
+            }
+        }
+
+    if (ilorazok)
+        printf("ILOCZYN OK\n");
 }
 
 int main (int argc, char* args[]) {
