@@ -133,6 +133,17 @@ section .data
     pop ecx
 %endmacro
 
+%macro call_shift_left_bcd 2
+    push ecx
+    push edx
+    push %2
+    push %1
+    call shift_left_bcd
+    add esp, 8             ; Restore the stack 
+    pop edx
+    pop ecx
+%endmacro
+
 %macro call_roznica 2
     push ecx
     push edx

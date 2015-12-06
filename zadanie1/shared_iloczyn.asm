@@ -15,12 +15,12 @@
     je %%multiply_finish_positive
 
 %%multiply_finish_negative:
-    mov [edi], 208
+    mov BYTE [edi], 208
     mov eax, edi
     epilogue
 
 %%multiply_finish_positive:
-    mov [edi], 192
+    mov BYTE [edi], 192
     mov eax, edi
     epilogue
 %endmacro
