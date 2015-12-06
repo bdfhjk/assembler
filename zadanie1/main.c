@@ -191,12 +191,14 @@ int main (int argc, char* args[]) {
     test_shift_left_bcd();
     test_shift_right_bcd();
     test_iloczyn();
+    /*
     char* w;
     bcd *a, *b, *c;
-    a = parse("3");
-    b = parse("1");
+    a = parse("18");
+    b = parse("2");
     c = iloraz(a, b);
     w = unparse(c);
     printf("%s\n", w);
     return 0;
+    */
 }

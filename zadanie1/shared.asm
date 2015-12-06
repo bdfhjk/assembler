@@ -101,71 +101,64 @@ section .data
     nop
 %endmacro
 
-%macro call_malloc 2
+%macro call_1 2
+    push ebx
     push ecx
     push edx
-    push %1
-    call malloc
-    add esp, 4             ; Restore the stack 
+    push edi
+    push esi
+    push %2
+    call %1
+    add esp, 4
+    pop esi
+    pop edi
     pop edx
     pop ecx
+    pop ebx
+%endmacro
+
+%macro call_2 3
+    push ebx
+    push ecx
+    push edx
+    push edi
+    push esi
+    push %3
+    push %2
+    call %1
+    add esp, 8
+    pop esi
+    pop edi
+    pop edx
+    pop ecx
+    pop ebx
+%endmacro
+
+%macro call_malloc 2
+    call_1 malloc, %1
     mov %2, eax
 %endmacro
 
 %macro call_free 1
-    push ecx
-    push edx
     push eax
-    push %1
-    call free
-    add esp, 4             ; Restore the stack 
+    call_1 free, %1
     pop eax
-    pop edx
-    pop ecx
 %endmacro
 
 %macro call_suma 2
-    push ecx
-    push edx
-    push %2
-    push %1
-    call suma
-    add esp, 8             ; Restore the stack 
-    pop edx
-    pop ecx
+    call_2 suma, %1, %2
 %endmacro
 
 %macro call_shift_left_bcd 2
-    push ecx
-    push edx
-    push %2
-    push %1
-    call shift_left_bcd
-    add esp, 8             ; Restore the stack 
-    pop edx
-    pop ecx
+    call_2 shift_left_bcd, %1, %2
 %endmacro
 
 %macro call_shift_right_bcd 2
-    push ecx
-    push edx
-    push %2
-    push %1
-    call shift_right_bcd
-    add esp, 8             ; Restore the stack 
-    pop edx
-    pop ecx
+    call_2 shift_right_bcd, %1, %2
 %endmacro
 
 %macro call_roznica 2
-    push ecx
-    push edx
-    push %2
-    push %1
-    call roznica
-    add esp, 8             ; Restore the stack 
-    pop edx
-    pop ecx
+    call_2 roznica, %1, %2
 %endmacro
     
 %macro to_bytes 2
