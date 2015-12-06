@@ -12,6 +12,8 @@ extern free
 shift_right_bcd:
     prologue 0
     mov ebx, [ebp+8]                    ; Move the first parameter to EBX
+    copy_bcd ebx
+    mov ebx, eax
     mov ecx, [ebp+12]                   ; Move the second parameter to ECX
     cmp WORD [ebx], 192                 ; 1101 0000 0000 0000
     je return_zero

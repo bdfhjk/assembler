@@ -10,8 +10,10 @@
 
 %macro multiply_shared_finish 0
     ;call_free esi
+    mov ebx, [ebp+8]
     mov ah, [ebx]
-    cmp ah, [ecx]
+    mov ebx, [ebp+12]
+    cmp ah, [ebx]
     je %%multiply_finish_positive
 
 %%multiply_finish_negative:

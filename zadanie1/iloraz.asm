@@ -18,11 +18,17 @@ iloraz:
     prologue 0
     mov ebx, [ebp+8]        ; Move the first parameter to EBX
     mov ecx, [ebp+12]       ; Move the second parameter to ECX
+    copy_bcd ebx
+    mov ebx, eax
+    copy_bcd ecx
+    mov ecx, eax
     cmp BYTE [ebx+1], 0     ; First parameter is 0
     je iloraz_return_zero
     cmp BYTE [ecx+1], 0     ; Second parameter is 0
     je iloraz_return_zero
     create_zero_bcd edi
+    mov BYTE [ebx], 192
+    mov BYTE [ecx], 192
     get_length_2
 
 division_loop_init:
@@ -35,19 +41,26 @@ division_loop_init:
 division_loop:
     ; [ecx] > [ebx] ? exit : continue
     call_roznica ebx, ecx
+    cmp BYTE [eax + 1], 0
+    je division_loop_skip
     cmp BYTE [eax], 208                     ;1101 0000
     je division_finish
+division_loop_skip:
     ;call_free eax
-    mov eax, [c]
-    call_shift_right_bcd ecx, eax
+    mov esi, [c]
+    ;copy_bcd ecx
+    call_shift_right_bcd ebx, esi
     mov esi, eax
     mov dl, 0
 
 accumulation_loop:
     ; [ecx] > [esi] ? exit : continue
     call_roznica esi, ecx
+    cmp BYTE [eax + 1], 0
+    je accumulation_loop_skip
     cmp BYTE [eax], 208                      ;1101 0000
     je accumulation_loop_finish
+accumulation_loop_skip:
     ;call_free eax
     mov esi, eax
     mov eax, [c]
@@ -68,6 +81,7 @@ accumulation_loop_finish:
     call_suma edi, eax
     ; call_free edi
     mov edi, eax
+    dec DWORD [c]
     jmp division_loop
 
 division_finish:

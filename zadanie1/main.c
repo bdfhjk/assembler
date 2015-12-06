@@ -161,8 +161,9 @@ void test_iloraz(){
     bcd *a, *b, *c;
     int ilorazok = 1;
     
-    for(i = -10; i < 10; i++)
-        for(j = 1; j < 20; j++){
+    for(i = -500; i < 500; i++)
+        for(j = -500; j < 500; j++){
+            if (j==0) continue;
             char str1[15];
             char str2[15];
             char str3[15];
@@ -182,7 +183,7 @@ void test_iloraz(){
         }
 
     if (ilorazok)
-        printf("ILOCZYN \t \t OK\n");
+        printf("ILORAZ \t \t OK\n");
 }
 
 int main (int argc, char* args[]) {
@@ -191,14 +192,6 @@ int main (int argc, char* args[]) {
     test_shift_left_bcd();
     test_shift_right_bcd();
     test_iloczyn();
-    /*
-    char* w;
-    bcd *a, *b, *c;
-    a = parse("18");
-    b = parse("2");
-    c = iloraz(a, b);
-    w = unparse(c);
-    printf("%s\n", w);
+    test_iloraz();
     return 0;
-    */
 }

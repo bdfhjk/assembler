@@ -35,7 +35,9 @@ multiply_loop:
     je multiply_finish
     cmp BYTE [eax], 208              ;1101 0000
     je multiply_finish
+    push edi
     read_bcd ebx, [b], dh, dl
+    pop edi
     create_zero_bcd esi
 
 accumulation_loop:
