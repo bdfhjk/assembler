@@ -4,17 +4,18 @@ global shift_left_bcd
 extern malloc
 extern free
 
+
 ; bcd* shift_left_bcd(bcd* a, long long b)
 
 
-; Shift BCD number a by b digits to the left (multiply by b)
+; Shift BCD number a by b digits to the left (multiply by 10^b)
 shift_left_bcd:
     prologue 0
     mov ebx, [ebp+8]                    ; Move the first parameter to EBX
     mov ecx, [ebp+12]                   ; Move the second parameter to ECX
-    cmp WORD [ebx], 192               ; 1101 0000 0000 0000
+    cmp WORD [ebx], 192                 ; 1101 0000 0000 0000
     je return_zero
-    cmp WORD [ebx], 208               ; 1100 0000 0000 0000
+    cmp WORD [ebx], 208                 ; 1100 0000 0000 0000
     je return_zero
 
     get_length_2_internal ebx, l1
@@ -57,7 +58,7 @@ shift_left_bcd_loop_a:
     jmp shift_left_bcd_loop_a
 
 shift_left_bcd_finish:
-    call_free ebx
+    ;call_free ebx
     mov eax, esi
     epilogue
     ret

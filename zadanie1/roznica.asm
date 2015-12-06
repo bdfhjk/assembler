@@ -77,7 +77,7 @@ subtraction_loop_finish_carry:
 adjust_sign:
     cmp BYTE [d], 1                 ; Check if we made a swap
     je adjust_sign_exit
-    cmp BYTE [edi], 192	
+    cmp BYTE [edi], 192
     je adjust_sign_make_negative
 
 adjust_sign_make_positive:

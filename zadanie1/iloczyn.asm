@@ -56,7 +56,6 @@ accumulation_loop_finish:
     mov esi, eax
     call_suma esi, edi
     push eax
-    ;call_free esi
     call_free edi
     pop edi
     inc DWORD [c]

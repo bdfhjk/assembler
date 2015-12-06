@@ -84,7 +84,7 @@ section .data
     je %%compare_finish
     mov dh, [ebx+eax]           ; compare bytes
     cmp dh, [ecx+eax]
-    jb %%compare_finish
+    jnae %%compare_finish
     ja %%compare_swap
     inc eax
     jmp %%compare_loop
@@ -141,6 +141,17 @@ section .data
     push %2
     push %1
     call shift_left_bcd
+    add esp, 8             ; Restore the stack 
+    pop edx
+    pop ecx
+%endmacro
+
+%macro call_shift_right_bcd 2
+    push ecx
+    push edx
+    push %2
+    push %1
+    call shift_right_bcd
     add esp, 8             ; Restore the stack 
     pop edx
     pop ecx

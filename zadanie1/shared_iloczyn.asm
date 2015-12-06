@@ -9,7 +9,7 @@
 %endmacro
 
 %macro multiply_shared_finish 0
-    call_free esi
+    ;call_free esi
     mov ah, [ebx]
     cmp ah, [ecx]
     je %%multiply_finish_positive

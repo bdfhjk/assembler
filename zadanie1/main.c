@@ -45,9 +45,9 @@ void test_suma_roznica(){
         }
 
         if (sumaok)
-            printf("SUMA OK\n");
+            printf("SUMA \t \t OK\n");
         if (roznicaok)
-            printf("ROZNICA OK\n");
+            printf("ROZNICA \t OK \n");
 }
 
 void test_parse_unparse(){
@@ -68,7 +68,7 @@ void test_parse_unparse(){
     }
 
     if (parseok)
-        printf("PARSE OK\n");
+        printf("PARSE \t \t OK\n");
 }
 
 void test_shift_left_bcd(){
@@ -95,7 +95,7 @@ void test_shift_left_bcd(){
         }
 
     if (shiftok)
-        printf("SHIFT_LEFT_BCD OK\n");
+        printf("SHIFT_LEFT \t OK\n");
 }
 
 void test_shift_right_bcd(){
@@ -104,8 +104,8 @@ void test_shift_right_bcd(){
     bcd *a, *b, *c;
     int shiftok = 1;
     
-    for(i = 0; i < 10; i++)
-        for(j = 0; j < 6; j++){
+    for(i = 0; i < 100000; i++)
+        for(j = 0; j < 9; j++){
             char str1[15];
             char str3[15];
             sprintf(str1, "%lld", i);
@@ -122,7 +122,7 @@ void test_shift_right_bcd(){
         }
 
     if (shiftok)
-        printf("SHIFT_RIGHT_BCD OK\n");
+        printf("SHIFT_RIGHT \t OK\n");
 }
 
 void test_iloczyn(){
@@ -132,7 +132,7 @@ void test_iloczyn(){
     int iloczynok = 1;
     
     for(i = -1000; i < 1000; i++)
-        for(j = -1000; j < 1000; j++){
+        for(j = -100; j < 100; j++){
             char str1[15];
             char str2[15];
             char str3[15];
@@ -152,7 +152,7 @@ void test_iloczyn(){
         }
 
     if (iloczynok)
-        printf("ILOCZYN OK\n");
+        printf("ILOCZYN \t OK\n");
 }
 
 void test_iloraz(){
@@ -182,32 +182,21 @@ void test_iloraz(){
         }
 
     if (ilorazok)
-        printf("ILOCZYN OK\n");
+        printf("ILOCZYN \t \t OK\n");
 }
 
 int main (int argc, char* args[]) {
     test_parse_unparse();
     test_suma_roznica();
     test_shift_left_bcd();
+    test_shift_right_bcd();
     test_iloczyn();
-
-/*    
     char* w;
     bcd *a, *b, *c;
-    
-    a = parse("1");
+    a = parse("3");
     b = parse("1");
-    c = iloczyn(a, b);
-
+    c = iloraz(a, b);
     w = unparse(c);
     printf("%s\n", w);
-    
-    a = parse("0");
-    b = parse("0");
-    c = iloczyn(a, b);
-
-    w = unparse(c);
-    printf("%s\n", w);
-  */  
     return 0;
 }
