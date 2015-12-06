@@ -10,8 +10,8 @@ void test_suma_roznica(){
     int sumaok = 1;
     int roznicaok = 1;
 
-    for(i = -1500; i < 1500; i++)
-        for(j = -1500; j < 1500; j++){
+    for(i = -500; i < 500; i++)
+        for(j = -500; j < 500; j++){
             char str1[15];
             char str2[15];
             char str3[15];
@@ -56,7 +56,7 @@ void test_parse_unparse(){
     char liczba1[15];
     char* liczba2;
     int parseok = 1;
-    for(i = -15000000; i < 15000000; i++){
+    for(i = -150000; i < 150000; i++){
         sprintf(liczba1, "%d", i);
         wynik = parse(liczba1);
         liczba2 = unparse(wynik);
@@ -72,24 +72,24 @@ void test_parse_unparse(){
 }
 
 void test_shift_left_bcd(){
-    int i, j;
+    long long i, j;
     char* w;
     bcd *a, *b, *c;
     int shiftok = 1;
     
-    for(i = -10; i < 10; i++)
-        for(j = 0; j < 10; j++){
+    for(i = -100; i < 100; i++)
+        for(j = 0; j < 12; j++){
             char str1[15];
             char str3[15];
-            sprintf(str1, "%d", i);
-            sprintf(str3, "%d", i * (int)pow(10,j));
+            sprintf(str1, "%lld", i);
+            sprintf(str3, "%lld", i * (long long)pow(10,j));
 
             a = parse(str1);
             c = shift_left_bcd(a, j);
             w = unparse(c);
 
             if (strcmp(w, str3) != 0) {
-                printf("SHIFT_LEFT_BCD ERROR [i = %d | j = %d | %s = %s ]\n", i, j, w, str3);
+                printf("SHIFT_LEFT_BCD ERROR [i = %lld | j = %lld | %s = %s ]\n", i, j, w, str3);
                 shiftok = 0;
             }
         }
@@ -99,24 +99,24 @@ void test_shift_left_bcd(){
 }
 
 void test_shift_right_bcd(){
-    int i, j;
+    long long i, j;
     char* w;
     bcd *a, *b, *c;
     int shiftok = 1;
     
-    for(i = -10; i < 10; i++)
-        for(j = 0; j < 10; j++){
+    for(i = 0; i < 10; i++)
+        for(j = 0; j < 6; j++){
             char str1[15];
             char str3[15];
-            sprintf(str1, "%d", i);
-            sprintf(str3, "%d", (int)i / (int)pow(10,j));
+            sprintf(str1, "%lld", i);
+            sprintf(str3, "%lld", i / (long long)pow(10,j));
 
             a = parse(str1);
             c = shift_right_bcd(a, j);
             w = unparse(c);
 
             if (strcmp(w, str3) != 0) {
-                printf("SHIFT_RIGHT_BCD ERROR [i = %d | j = %d | %s = %s ]\n", i, j, w, str3);
+                printf("SHIFT_RIGHT_BCD ERROR [i = %lld | j = %lld | %s = %s ]\n", i, j, w, str3);
                 shiftok = 0;
             }
         }
@@ -188,5 +188,7 @@ void test_iloraz(){
 int main (int argc, char* args[]) {
     test_parse_unparse();
     test_suma_roznica();
+    test_shift_left_bcd();
+
     return 0;
 }

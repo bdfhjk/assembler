@@ -150,46 +150,49 @@ section .data
     shr DWORD %1, 1
 %endmacro
 
-;%macro write_bcd 4
-;    cmp %3, 1
-;    jne %%write_bcd_low_byte
+%macro write_bcd 4
+    mov edi, %1
+    add edi, %2
+    mov ch, %4
+    cmp %3, 1
+    je %%write_bcd_low_byte
 
-;%%write_bcd_high_byte:
-;    shl %4, 4                   ; Adjust to high byte
-;    add [ %1 + %2 ], %4
-;    mov %3, 1
-;    dec %2
-;    jmp %%write_bcd_finish
+%%write_bcd_high_byte:
+    shl ch, 4
+    add [edi], ch
+    mov %3, 1
+    dec DWORD %2
+    jmp %%write_bcd_finish
 
-;%%write_bcd_low_byte:
-;    mov BYTE [ %1 + %2 ], 0     ; Clearing byte
-;    add [ %1 + %2 ], %4         ; Adding to low byte
-;    mov %3, 0
+%%write_bcd_low_byte:
+    mov BYTE [edi], 0
+    add [edi], ch
+    mov %3, 0
 
-;%%write_bcd_finish:
-;    nop
-;
-;%endmacro
-;
-;%macro read_bcd 4
-;    cmp %3, 1
-;    jne %%read_bcd_low_byte
-;
-;%%read_bcd_high_byte:
-;    mov BYTE %4, [ %1 + %2 ]
-;    and %4, 240                     ; 1111 0000
-;    shr %4, 4
-;    mov %3, 1
-;    dec %2
-;    jmp %%read_bcd_finish
+%%write_bcd_finish:
+    nop
+%endmacro
 
-;%%read_bcd_low_byte:
-;    mov BYTE %4, [ %1 + %2 ]
-;    and %4, 15                      ; 0000 1111
-;    mov %3, 0
+%macro read_bcd 4
+    mov edi, %1
+    add edi, %2
+    mov BYTE %4, [edi]
+    cmp %3, 1
+    je %%read_bcd_low_byte
 
-;%%read_bcd_finish:
-;    nop
-;%endmacro
+%%read_bcd_high_byte:
+    and %4, 240                     ; 1111 0000
+    shr %4, 4
+    mov %3, 1
+    dec DWORD %2
+    jmp %%read_bcd_finish
+
+%%read_bcd_low_byte:
+    and %4, 15                      ; 0000 1111
+    mov %3, 0
+
+%%read_bcd_finish:
+    nop
+%endmacro
 
 %endif
