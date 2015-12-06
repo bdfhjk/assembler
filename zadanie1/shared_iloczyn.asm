@@ -10,19 +10,21 @@
 
 %macro multiply_shared_finish 0
     call_free esi
-    mov eax, [ebx]
-    cmp eax, [ecx]
+    mov ah, [ebx]
+    cmp ah, [ecx]
     je %%multiply_finish_positive
 
 %%multiply_finish_negative:
     mov BYTE [edi], 208
     mov eax, edi
     epilogue
+    ret
 
 %%multiply_finish_positive:
     mov BYTE [edi], 192
     mov eax, edi
     epilogue
+    ret
 %endmacro
 
 %endif

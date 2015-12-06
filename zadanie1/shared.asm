@@ -12,6 +12,8 @@ section .data
     c   DD  0   ; Iteration variable used by division and multiplication
     d   DD  0   ; 1 if compare switched registers, 0 otherwise
     e   DD  0   ; Used by write/read bcd
+    t1  DD  0
+    t2  DD  0
 
 %macro prologue 1
     ; Saving base pointer and stack pointer
@@ -205,5 +207,28 @@ section .data
 %%read_bcd_finish:
     nop
 %endmacro
+
+;%1 - where from
+; Result will be at eax
+%macro copy_bcd 1
+    get_length_2_internal %1, l1
+    to_bytes edx, [l1]
+    add edx, 2
+    call_malloc edx, eax
+    mov esi, edx
+    dec esi
+
+%%copy_bcd_loop:
+    mov edi, [ %1 + esi]
+    mov [eax + esi], edi 
+    cmp esi, 0
+    je %%copy_bcd_finish
+    dec esi
+    jmp %%copy_bcd_loop
+
+%%copy_bcd_finish:
+    nop
+%endmacro
+
 
 %endif

@@ -81,33 +81,35 @@ go_roznica:
    
     ; EBX - ujemna, ECX - dodatnia
     xchg ebx, ecx
-    mov BYTE [ecx], 192                    ;1100 0000
+    copy_bcd ecx
+    mov BYTE [eax], 192                    ;1100 0000
+    mov ecx, eax
 
     push ecx
     push ebx
     call roznica
     add esp, 8                             ; Restore the stack
-    
     epilogue
     ret
 
 roznica_swap:
     ; EBX - dodatnia, ECX -  ujemna
-    mov BYTE [ecx], 192                    ;1100 0000
+    copy_bcd ecx
+    mov BYTE [eax], 192                    ;1100 0000
+    mov ecx, eax
     push ecx
     push ebx
     call roznica
     add esp, 8                             ;Restore the stack
-    
     epilogue
     ret
 
 suma_return_1:
-    mov eax, ebx
+    copy_bcd ebx
     epilogue
     ret
 
 suma_return_2:
-    mov eax, ecx
+    copy_bcd ecx
     epilogue
     ret

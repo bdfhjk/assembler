@@ -12,7 +12,6 @@ global iloczyn
 
 
 iloczyn:
-    nop
     prologue 0
     mov ebx, [ebp+8]        ; Move the first parameter to EBX
     mov ecx, [ebp+12]       ; Move the second parameter to ECX
@@ -21,7 +20,6 @@ iloczyn:
     cmp BYTE [ecx+1], 0     ; Second parameter is 0
     je iloczyn_return_zero
     compare
-    create_zero_bcd esi
     create_zero_bcd edi
 
 multiply_loop_init:
@@ -40,25 +38,27 @@ multiply_loop:
     push edi
     read_bcd ebx, [b], dh, dl
     pop edi
-    call_free esi
     create_zero_bcd esi
 
 accumulation_loop:
     cmp dl, 0
     je accumulation_loop_finish
     call_suma ecx, esi
+    push eax
     call_free esi
-    mov esi, eax
+    pop esi
     dec dl
     jmp accumulation_loop
 
 accumulation_loop_finish:
     mov eax, [c]
     call_shift_left_bcd esi, eax
-    call_suma esi, edi 
-    call_free esi
+    mov esi, eax
+    call_suma esi, edi
+    push eax
+    ;call_free esi
     call_free edi
-    mov edi, eax
+    pop edi
     inc DWORD [c]
     jmp multiply_loop
 

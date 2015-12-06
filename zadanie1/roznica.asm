@@ -116,19 +116,19 @@ suma_swap:
     ret
 
 roznica_return_1:
-    mov eax, ebx
+    copy_bcd ebx
     epilogue
     ret
 
 roznica_return_2:
-    cmp BYTE [ecx], 208
+    copy_bcd ecx
+    cmp BYTE [eax], 208
     je roznica_return_2_2
-    mov BYTE [ecx], 208                    ;1101 0000
-    mov eax, ecx
+    mov BYTE [eax], 208                    ;1101 0000
     epilogue
     ret
 
 roznica_return_2_2:
-    mov BYTE [ecx], 192
+    mov BYTE [eax], 192
     epilogue
     ret

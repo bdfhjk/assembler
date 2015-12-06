@@ -131,8 +131,8 @@ void test_iloczyn(){
     bcd *a, *b, *c;
     int iloczynok = 1;
     
-    for(i = -10; i < 10; i++)
-        for(j = -10; j < 10; j++){
+    for(i = -1000; i < 1000; i++)
+        for(j = -1000; j < 1000; j++){
             char str1[15];
             char str2[15];
             char str3[15];
@@ -189,6 +189,25 @@ int main (int argc, char* args[]) {
     test_parse_unparse();
     test_suma_roznica();
     test_shift_left_bcd();
+    test_iloczyn();
 
+/*    
+    char* w;
+    bcd *a, *b, *c;
+    
+    a = parse("1");
+    b = parse("1");
+    c = iloczyn(a, b);
+
+    w = unparse(c);
+    printf("%s\n", w);
+    
+    a = parse("0");
+    b = parse("0");
+    c = iloczyn(a, b);
+
+    w = unparse(c);
+    printf("%s\n", w);
+  */  
     return 0;
 }
