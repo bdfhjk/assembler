@@ -1,5 +1,5 @@
 main: main.c library.o
-	gcc -o main main.c library.o
+	gcc -g -o main main.c library.o
 
 .SECONDARY:
 
@@ -11,3 +11,4 @@ main: main.c library.o
 	
 clean:
 	rm -f *.o
+	rm -f main
