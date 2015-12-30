@@ -24,11 +24,11 @@ void start_c(int szer, int wys, float* M, float waga){
 	H = wys;
 	E = waga;
 
-	posix_memalign((void**)&M2, 16, W*H*sizeof(float));
-	posix_memalign((void**)&M1, 16, W*H*sizeof(float));
+	posix_memalign((void**)&M2, 16, (W*H + 4)*sizeof(float));
+	posix_memalign((void**)&M1, 16, (W*H + 4)*sizeof(float));
 	
-	memcpy(M1, M, W*H*sizeof(float));
-	memcpy(M2, M, W*H*sizeof(float));
+	memcpy(M1, M, (W*H + 4)*sizeof(float));
+	memcpy(M2, M, (W*H + 4)*sizeof(float));
 }
 
 void step_c(float T[]){
