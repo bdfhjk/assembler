@@ -8,9 +8,13 @@
 */
 void print(){
         int i, j;
-        for(i = 0; i < H; i++){
+        for(i = 0; i < H; i++)
+        {
                 for(j = 0; j < W; j++)
-                        printf("%f ", M2[j * H + i]);
+                {
+                        //printf("%f ", M2[j * H + i]);
+                    printf("0x%X ", (M2[j * H + i]));
+                }
                 printf("\n");
         }
 	printf("\n");
@@ -82,7 +86,7 @@ int main(int argc, char* args[]){
 	T = malloc(H * sizeof(float));
 	for(i = 0; i < n; i++){
 		memcpy(T, N + i*H, H * sizeof(float)); 
-		step_c(T);
+		step(T);
 		print();
 	}
         return 0;
