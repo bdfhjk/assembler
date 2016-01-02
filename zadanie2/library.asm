@@ -136,10 +136,8 @@ section .text
 	add r14, 16
 	
 	; Checking if we are by the end of line
-	mov r10, rsi
-	add r10, r12
-	sub r10, 16		; Removing 16 = margin size
-	sub r10, %1		; And removing shift
+	lea r10, [rsi + r12 - 16] 	; Removing 16 = margin size
+	sub r10, %1				; And removing shift
 	
 	cmp r13, r10
 	jb %%add_line_N_loop
@@ -286,7 +284,8 @@ step:
 ; Stage_0 - copy new initial values column
 	mov rax, [H]
 	shl rax, 2
-	cmemcpy [M1], rsi, rax
+	mov rbx, rdi
+	cmemcpy [M1], rbx, rax
 
 ; Stage1 - multiply all by 5
 	multiply_all [PIEC], [M2]
@@ -302,8 +301,7 @@ stage_2:
 	;left edge
 	multiply_column
 	
-	add r13, r12
-	sub r13, 20
+	lea r13, [r13 + r12 - 20]
 
 	;right edge
 	multiply_column
