@@ -38,8 +38,8 @@ section .text
 %endmacro
 
 %macro movmm4 2
-	mov r15d, %2
-	mov %1, r15d
+	mov r15, %2
+	mov %1, r15
 %endmacro
 
 %macro cmemcpy 3
@@ -56,15 +56,18 @@ section .text
 	call memset
 %endmacro
 
+
+; r9 - address of temporary table T
+; r10 - address of read/write to row
 %macro move_vertically 3
-	mov r9d, 	      %3
-	mov r10d,	      [T]
+	mov r9, 	      %3
+	mov r10,	      [T]
 	movmm4 	 %1, %2
 	mov rax, 0
 
 %%move_vertically_step:
-	add r9d,	r12d
-	add r10d, 4
+	add r9,	r12
+	add r10, 4
 	movmm4 	 %1, %2
 	inc rax
 	cmp rax, 3
@@ -72,24 +75,24 @@ section .text
 %endmacro 
 
 %macro multiply_column 0
-	move_vertically [r10d], [r9d], r13d		; move from 4 collumn bytes starting at r13d into T
-	mov r9d, [T]
-	movups xmm0, [r9d]
+	move_vertically [r10], [r9], r13		; move from 4 collumn bytes starting at r13 into T
+	mov r9, [T]
+	movups xmm0, [r9]
 	mulps xmm0, xmm1
-	movups [r9d], xmm0
-	move_vertically [r9d], [r10d], r13d  	; move to 4 collumn bytes starting at r13d from T
+	movups [r9], xmm0
+	move_vertically [r9], [r10], r13  	; move to 4 collumn bytes starting at r13 from T
 %endmacro
 
 %macro add_column 0
-	move_vertically [r10d], [r9d], r14d 
-	mov r9d, [T]
-	movups xmm0, [r9d]
-	move_vertically [r10d], [r9d], r13d
-	mov r9d, [T]
-	movups xmm1, [r9d]
+	move_vertically [r10], [r9], r14 
+	mov r9, [T]
+	movups xmm0, [r9]
+	move_vertically [r10], [r9], r13
+	mov r9, [T]
+	movups xmm1, [r9]
 	addps xmm0, xmm1
-	movups [r9d], xmm0
-	move_vertically [r9d], [r10d], r13d
+	movups [r9], xmm0
+	move_vertically [r9], [r10], r13
 %endmacro
 
 %macro prologue 0
@@ -113,87 +116,87 @@ section .text
 
 %macro add_line_N 2
 ; Stage4 - add NW neighbors
-	mov r13d, [M1]			
-	add r13d, r12d		; Set r13d to point a second line in M1
-	mov r14d, [M2]		; Set r14d to point a first line in M2
-	add r13d, %1			; Shift them by %1 / %2
-	add r14d, %2
-	mov esi, r13d			; Store the initial values for current line.
-	mov edi, r14d
+	mov r13, [M1]			
+	add r13, r12		; Set r13 to point a second line in M1
+	mov r14, [M2]		; Set r14 to point a first line in M2
+	add r13, %1			; Shift them by %1 / %2
+	add r14, %2
+	mov rsi, r13			; Store the initial values for current line.
+	mov rdi, r14
 	
 %%add_line_N_loop:
 	; Addition using SSE
-	movups xmm0, [r13d]
-	movups xmm1, [r14d]
+	movups xmm0, [r13]
+	movups xmm1, [r14]
 	addps xmm0, xmm1
-	movups [r13d], xmm0
+	movups [r13], xmm0
 	
 	; Moving to next 4 floats
-	add r13d, 16
-	add r14d, 16
+	add r13, 16
+	add r14, 16
 	
 	; Checking if we are by the end of line
-	mov r10d, esi
-	add r10d, r12d
-	sub r10d, 16		; Removing 16 = margin size
-	sub r10d, %1		; And removing shift
+	mov r10, rsi
+	add r10, r12
+	sub r10, 16		; Removing 16 = margin size
+	sub r10, %1		; And removing shift
 	
-	cmp r13d, r10d
+	cmp r13, r10
 	jb %%add_line_N_loop
 	
-	mov dword [r10d], 0		;make margin equal to zero
+	mov dword [r10], 0		;make margin equal to zero
 	
-	add esi, r12d
-	add edi, r12d
-	mov r13d, esi
-	mov r14d, edi
+	add rsi, r12
+	add rdi, r12
+	mov r13, rsi
+	mov r14, rdi
 	
-	mov r10d, [M1]
-	add r10d, [ME]
+	mov r10, [M1]
+	add r10, [ME]
 	
-	cmp r13d, r10d
+	cmp r13, r10
 	jb %%add_line_N_loop
 %endmacro
 
 %macro add_column_vertically 2
-	mov r13d, [M1]			
-	add r13d, r12d
-	add r13d, %1
-	mov r14d, [M2]
-	add r14d, r12d
-	add r14d, %2
-	mov esi, r13d			; Store the begin address for a current column
-	mov edi, r14d			; To by used in calculations when changing collumns
+	mov r13, [M1]			
+	add r13, r12
+	add r13, %1
+	mov r14, [M2]
+	add r14, r12
+	add r14, %2
+	mov rsi, r13			; Store the begin address for a current column
+	mov rdi, r14			; To by used in calculations when changing collumns
 	
 %%add_column_vertically_loop:
-	; Add 4 column cells starting at r14d to r13d
+	; Add 4 column cells starting at r14 to r13
 	add_column
 	
 	; Move 4 rows down
-	add r13d, r12d
-	add r13d, r12d
-	add r13d, r12d
-	add r13d, r12d	
+	add r13, r12
+	add r13, r12
+	add r13, r12
+	add r13, r12	
 
 	; Check if we are finished row
-	mov r10d, [M1]
-	add r10d, [ME]
-	cmp r13d, r10d
+	mov r10, [M1]
+	add r10, [ME]
+	cmp r13, r10
 	jb %%add_column_vertically_loop
 
 	; Move to the next pair of collumns
-	add esi, 4
-	add edi, 4
-	mov r13d, esi
-	mov r14d, edi
+	add rsi, 4
+	add rdi, 4
+	mov r13, rsi
+	mov r14, rdi
 	
 	; Check if we are finished all collumns (there are W columns each sizeof(float) width)
-	mov eax, [W]
-	shl eax, 2
-	mov r10d, eax
-	add r10d, [M1]
-	add r10d, r12d
-	cmp r13d, r10d
+	mov rax, [W]
+	shl rax, 2
+	mov r10, rax
+	add r10, [M1]
+	add r10, r12
+	cmp r13, r10
 	jb %%add_column_vertically_loop
 	
 %endmacro
@@ -201,23 +204,23 @@ section .text
 %macro multiply_all 2
 	movss xmm1, %1
 	shufps xmm1, xmm1, 0x00
-	mov r13d, [M1]			
-	add r13d, r12d
-	mov r14d, %2
-	add r14d, r12d
+	mov r13, [M1]			
+	add r13, r12
+	mov r14, %2
+	add r14, r12
 
 %%multiply_all_loop:
-	movups xmm0, [r14d]
+	movups xmm0, [r14]
 	mulps xmm0, xmm1
-	movups [r13d], xmm0
+	movups [r13], xmm0
 	
-	add r13d, 16
-	add r14d, 16
+	add r13, 16
+	add r14, 16
 	
-	mov r10d, [M1]
-	add r10d, [ME]
+	mov r10, [M1]
+	add r10, [ME]
 	
-	cmp r13d, r10d
+	cmp r13, r10
 	jb %%multiply_all_loop
 %endmacro
 
@@ -271,9 +274,14 @@ start:
 	
 	epilogue
 
+
+; r12 - store real size of a row
+; r13 - current address of M1 (write) 
+; r14 - current address of M2 (read)
+; r10 - temporary
 step:
 	prologue
-	mov r12d, [TE]
+	mov r12, [TE]
 
 ; Stage_0 - copy new initial values column
 	mov rax, [H]
@@ -287,28 +295,28 @@ step:
 stage_2_prep:
 	movss xmm1, [TRZY_PIATE]
 	shufps xmm1, xmm1, 0x00
-	mov r13d, [M1]			
-	add r13d, r12d	
+	mov r13, [M1]			
+	add r13, r12	
 
 stage_2:	
 	;left edge
 	multiply_column
 	
-	add r13d, r12d
-	sub r13d, 20
+	add r13, r12
+	sub r13, 20
 
 	;right edge
 	multiply_column
 		
-	add r13d, r12d
-	add r13d, r12d
-	add r13d, r12d
-	add r13d, r12d	
+	add r13, r12
+	add r13, r12
+	add r13, r12
+	add r13, r12	
 	
-	mov r10d, [M1]
-	add r10d, [ME]
+	mov r10, [M1]
+	add r10, [ME]
 	
-	cmp r13d, r10d
+	cmp r13, r10
 	jb stage_2
 	
 ; Stage 3,4,5 - add N, NW, NE neighbor to each cell
@@ -325,31 +333,31 @@ stage_2:
 	
 ; Stage 9 - add base value
 stage_9_prep:
-	mov r13d, [M1]			
-	add r13d, r12d
-	mov r14d, [M2]
-	add r14d, r12d
+	mov r13, [M1]			
+	add r13, r12
+	mov r14, [M2]
+	add r14, r12
 
 stage_9:
-	movups xmm0, [r14d]
-	movups xmm1, [r13d]
+	movups xmm0, [r14]
+	movups xmm1, [r13]
 	addps xmm0, xmm1
-	movups [r13d], xmm0
+	movups [r13], xmm0
 	
-	add r13d, 16
-	add r14d, 16
+	add r13, 16
+	add r14, 16
 	
-	mov r10d, [M1]
-	add r10d, [ME]
+	mov r10, [M1]
+	add r10, [ME]
 	
-	cmp r13d, r10d
+	cmp r13, r10
 	jb stage_9
 
 ; Stage 10 - swap pointers 
 stage_10:
-	mov eax, [M1]
-	mov ebx, [M2]
-	mov [M1], ebx
-	mov [M2], eax
+	mov rax, [M1]
+	mov rbx, [M2]
+	mov [M1], rbx
+	mov [M2], rax
 
 	epilogue
