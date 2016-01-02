@@ -277,8 +277,7 @@ step:
 
 ; Stage_0 - copy new initial values column
 	mov rax, [H]
-	mov rbx, 4
-	mul rbx
+	shl rax, 2
 	cmemcpy [M1], rsi, rax
 
 ; Stage1 - multiply all by 5
