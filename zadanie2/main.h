@@ -7,3 +7,4 @@ extern int n;				//number of simulation steps
 extern float *N;			//matrix with simulation steps
 
 extern void start();
+extern void step();

@@ -14,7 +14,6 @@ global start
 global step
 
 section .bss
-
 W		resq	1	; width
 H		resq	1	; height
 E		resq	1	; weight
@@ -23,7 +22,7 @@ M2		resq 1	; result matrix pointer
 T		resq 1	; temporary space for constants
 n		resq 1	; number of steps
 N		resq 1	; steps matrix
-MT		resq 1	; initial matrix passed to start pointer
+MT		resq 1	; initial matrix passed to start function
 ME		resq 1	; real size of matrix M1 and M2
 TE		resq 1	; real size of matrix T
 
@@ -32,7 +31,6 @@ PIEC		  	dd   5.0
 TRZY_PIATE 	dd   0.6
 
 section .text
-
 %macro cmalloc 2
 	mov rdi, %2
 	call malloc
@@ -57,7 +55,6 @@ section .text
 	mov rdx, %3
 	call memset
 %endmacro
-
 
 %macro move_vertically 3
 	mov r9d, 	      %3
@@ -125,7 +122,6 @@ section .text
 	mov edi, r14d
 	
 %%add_line_N_loop:
-
 	; Addition using SSE
 	movups xmm0, [r13d]
 	movups xmm1, [r14d]
@@ -166,8 +162,8 @@ section .text
 	mov r14d, [M2]
 	add r14d, r12d
 	add r14d, %2
-	mov esi, r13d			; Store the initial values for current column
-	mov edi, r14d
+	mov esi, r13d			; Store the begin address for a current column
+	mov edi, r14d			; To by used in calculations when changing collumns
 	
 %%add_column_vertically_loop:
 	; Add 4 column cells starting at r14d to r13d

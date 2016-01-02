@@ -4,22 +4,22 @@
 #include "main.h"
 
 /*
-	Print the M2 (result matrix) to stdio as a non-transposed matrix (remove transposition)
+	Print the M2 (result matrix) to stdio as a non-transposed matrix (remove transposition and margin zeros)
 */
 void print(){
         int i, j;
         for(i = 0; i < H; i++)
         {
                 for(j = 0; j < W; j++)
-                {
 		     printf("%f ", M2[j * (H + 4) + i]);
-                     //printf("0x%X ", *(unsigned int*)&(M2[j * H + i]));
-                }
                 printf("\n");
         }
 	printf("\n");
 }
 
+/*
+	Load the matrix into transposed form with 4 float-zeros on the right side (right after transposition)
+*/
 void load(){
         int i, j, szer, wys;
 	float *M, waga;
