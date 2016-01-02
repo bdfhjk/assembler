@@ -12,8 +12,8 @@ void print(){
         {
                 for(j = 0; j < W; j++)
                 {
-                        //printf("%f ", M2[j * H + i]);
-                    printf("0x%X ", (M2[j * H + i]));
+		     printf("%f ", M2[j * H + i]);
+                     //printf("0x%X ", *(unsigned int*)&(M2[j * H + i]));
                 }
                 printf("\n");
         }
@@ -28,11 +28,12 @@ void start_c(int szer, int wys, float* M, float waga){
 	H = wys;
 	E = waga;
 
-	posix_memalign((void**)&M2, 16, (W*H + 4)*sizeof(float));
-	posix_memalign((void**)&M1, 16, (W*H + 4)*sizeof(float));
+	M1 = malloc((W+4) * (H+4) * sizeof(float));
+	M2 = malloc((W+4) * (H+4) * sizeof(float));
 	
-	memcpy(M1, M, (W*H + 4)*sizeof(float));
-	memcpy(M2, M, (W*H + 4)*sizeof(float));
+	
+	memcpy(M1, M, (W*H)*sizeof(float));
+	memcpy(M2, M, (W*H)*sizeof(float));
 }
 
 void step_c(float T[]){
@@ -85,7 +86,7 @@ int main(int argc, char* args[]){
 	print();
 	T = malloc(H * sizeof(float));
 	for(i = 0; i < n; i++){
-		memcpy(T, N + i*H, H * sizeof(float)); 
+		//memcpy(T, N + i*H, H * sizeof(float)); 
 		step(T);
 		print();
 	}

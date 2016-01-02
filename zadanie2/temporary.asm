@@ -1,19 +1,4 @@
-; Stage2 - multiply left/right edge by 3/5. They should be multiplied by 3 not 5 as they have only 3 neighbors
-stage_2_prep:
-	movss xmm1, [TRZY_PIATE]
-	shufps xmm1, xmm1, 0x00
-	mov rax, [M1]				;RAX store the relative write address for M1
-	add rax, r12				;Add height. We need to start at the second row of transposed matrix 
 
-stage_2:	
-	;left edge
-	stage_2_multipification
-	
-	add rax, [H]
-	dec rax
-	
-	;right edge
-	stage_2_multipification
 
 	; row by row
 ; Stage3 - add NW neighbors

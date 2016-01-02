@@ -26,9 +26,8 @@ MT		resq 1	; initial matrix passed to start pointer
 ME		resq 1	; pointer for next to the last element of M2
 
 section .data
-PIEC		  dd   5.0
-;PIEC		  dd   0x40A00000
-TRZY_PIATE dd   0x3F19999A
+PIEC		  	dd   5.0
+TRZY_PIATE 	dd   0.6
 
 section .text
 
@@ -51,25 +50,50 @@ section .text
 %endmacro
 
 %macro stage_2_multipification 0
-	movmm4[T],		[rax]
-	movmm4 [T+ 4],   	[rax + r12]
-	movmm4 [T + 8],   	[rax + 2 * r12]
-	movmm4 [T + 12], 	[rax + 3 * r12] 
+	mov r9d, 	      r13d
+	mov r10d,	      [T]
+	movmm4 	 [r10d],  [r9d]
 	
-	movups xmm0, [T]
+	add r9d,	r12d
+	add r10d, 4
+	movmm4 	 [r10d],  [r9d]
+	
+	add r9d,	r12d
+	add r10d, 4
+	movmm4 	 [r10d],  [r9d]
+	
+	add r9d,	r12d
+	add r10d, 4
+	movmm4 	 [r10d],  [r9d]
+		
+	mov r9d, [T]
+	movups xmm0, [r9d]
 	mulps xmm0, xmm1
-	movups [T], xmm0
+	movups [r9d], xmm0
+
+	mov r9d, 	      r13d
+	mov r10d,	      [T]
+	movmm4 	[r9d], [r10d]
+
+	add r9d,	r12d
+	add r10d, 4
+	movmm4 	 [r9d],  [r10d]
 	
-	movmm4 [rax], 		[T]
-	movmm4 [rax + r12], 	[T+ 4]
-	movmm4 [rax + 2 * r12], [T + 8]
-	movmm4 [rax + 3 * r12], [T + 12]
+	add r9d,	r12d
+	add r10d, 4
+	movmm4 	 [r9d],  [r10d]
+	
+	add r9d,	r12d
+	add r10d, 4
+	movmm4 	 [r9d],  [r10d]
+
 %endmacro
 
 start:
 	enter 0,0
 	push r12
 	push r13
+	push rbx
 	
 	; Save local variables to global memory
 	mov [W], rdi
@@ -82,9 +106,9 @@ start:
 	
 	; Calculate size with overflow protection = [(W+4) * (H+4)] * sizeof(float)
 	mov rax, [W]
-	add rax, 4		; for segv prevention
+	add rax, 5		; for segv prevention
 	mov rbx, [H]		
-	add rbx, 4		; for segv prevention
+	add rbx, 5		; for segv prevention
 	mul rbx
 	mov rbx, 4
 	mul rbx
@@ -98,15 +122,19 @@ start:
 	mul rbx
 	mov r13, rax
 	
+	mov rax, [H]
+	mov rbx, 4
+	mul rbx
+	mov r11, rax
+	
 	cmalloc [M2], r12
 	cmalloc [M1], r12
-	cmalloc [T], 4
+	cmalloc [T], r11 
 	cmemcpy [M1], [MT], r13
-	cmemcpy [M2], [MT], r13
+	cmemcpy [M2], [MT], r13	
+	mov [ME], r13
 	
-	movmm4 [ME], [M1]
-	add [ME], r13
-	
+	pop rbx
 	pop r13
 	pop r12
 	leave
@@ -115,30 +143,67 @@ start:
 step:
 	enter 0,0
 	push r12
-	mov r12, [H]
-		
+	push r13
+	push r14
+	push r15
+	push rbx
+	mov eax, 4
+	mov ebx, [H]
+	mul ebx
+	mov r12d, eax
+
+; Stage_0 - copy new initial values column
 	
 ; Stage1 - multiply all by 5
 stage_1_prep:
-	xorps xmm1, xmm1
 	movss xmm1, [PIEC]
 	shufps xmm1, xmm1, 0x00
-	mov rax, [M1]				;RAX store the relative write address for M1
-	add rax, r12				;Add height. We need to start at the second row of transposed matrix 
-	mov rbx, [M2]				;RBX store the relative read address for M2
-	add rbx, r12				;as above
+	mov r13d, [M1]			;r14d store the relative write address for M1
+	add r13d, r12d
+	mov r14d, [M2]
+	add r14d, r12d
 
 stage_1:
-	;movups xmm0, [rbx]
-	;mulps xmm0, xmm1
-	;movups [rax], xmm0
-	movss [rax], xmm1
-;	
-;	add rax, 16
-;	add rbx, 16
-;	
-;	cmp rax, [ME]
-;	jl stage_1
+	movups xmm0, [r14d]
+	mulps xmm0, xmm1
+	movups [r13d], xmm0
+	
+	add r13d, 16
+	add r14d, 16
+	
+	mov r10d, [M1]
+	add r10d, [ME]
+	
+	cmp r13d, r10d
+	jb stage_1
+	
+; Stage2 - multiply left/right edge by 3/5. They should be multiplied by 3 not 5 as they have only 3 neighbors
+stage_2_prep:
+	movss xmm1, [TRZY_PIATE]
+	shufps xmm1, xmm1, 0x00
+	mov r13d, [M1]			;r14d store the relative write address for M1
+	add r13d, r12d	
+
+stage_2:	
+	;left edge
+	stage_2_multipification
+	
+	add r13d, r12d
+	sub r13d, 4
+
+	;right edge
+	stage_2_multipification
+	
+	add r13d, r12d
+	add r13d, r12d
+	add r13d, r12d
+	add r13d, r12d	
+	
+	mov r10d, [M1]
+	add r10d, [ME]
+	
+	cmp r13d, r10d
+	jb stage_1	
 
 ; Stage 10 - swap pointers 
 stage_10:
@@ -146,7 +211,11 @@ stage_10:
 	mov ebx, [M2]
 	mov [M1], ebx
 	mov [M2], eax
-	
+
+	pop rbx
+	pop r15
+	pop r14
+	pop r13
 	pop r12
 	leave
 	ret
