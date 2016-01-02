@@ -189,8 +189,7 @@ section .text
 	
 	; Check if we are finished all collumns (there are W columns each sizeof(float) width)
 	mov eax, [W]
-	mov ebx, 4
-	mul ebx
+	shl eax, 2
 	mov r10d, eax
 	add r10d, [M1]
 	add r10d, r12d
@@ -236,10 +235,7 @@ start:
 	
 	; Calculat size of step table T = (H+4) * sizeof(float)
 	mov rax, [H]
-	add rax, 4
-	mov rbx, 4		; Size of float is equal to 4
-	mul rbx
-	mov r11, rax
+	lea r11, [rax*4 + 16]		; Size of float is equal to 4
 	mov [TE], r11	
 	
 	; Calculate size with overflow protection = [(W+5) * (H+5)] * sizeof(float)
@@ -248,8 +244,7 @@ start:
 	mov rbx, [H]		
 	add rbx, 5		; Adding 5 for SSE parallel instruction overhead
 	mul rbx
-	mov rbx, 4		; Size of float is equal to 4
-	mul rbx
+	shl rax, 2		; Size of float is equal to 4
 	mov r12, rax
 	
 	; Calculate real size of matrix M1 = (W*(H+4)) * sizeof(float)
@@ -257,8 +252,7 @@ start:
 	mov rbx, [H]
 	add rbx, 4
 	mul rbx
-	mov rbx, 4		; Size of float is equal to 4
-	mul rbx
+	shl rax, 2		; Size of float is equal to 4
 	mov r13, rax
 	mov [ME], r13
 		

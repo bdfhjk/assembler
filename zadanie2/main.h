@@ -6,5 +6,5 @@ extern float *M2;			//result matrix
 extern int n;				//number of simulation steps
 extern float *N;			//matrix with simulation steps
 
-extern void start();
-extern void step();
+extern void start(int szer, int wys, float* M, double waga);
+extern void step(void *T);
