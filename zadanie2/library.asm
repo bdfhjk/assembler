@@ -74,15 +74,24 @@ section .text
 	jle %%move_vertically_step	
 %endmacro 
 
-
-%macro stage_2_multipification 0
-	move_vertically [r10d], [r9d], r13d
-
+%macro multiply_column 0
+	move_vertically [r10d], [r9d], r13d		; move from 4 collumn bytes starting at r13d into T
 	mov r9d, [T]
 	movups xmm0, [r9d]
 	mulps xmm0, xmm1
 	movups [r9d], xmm0
+	move_vertically [r9d], [r10d], r13d  	; move to 4 collumn bytes starting at r13d from T
+%endmacro
 
+%macro add_column 0
+	move_vertically [r10d], [r9d], r14d 
+	mov r9d, [T]
+	movups xmm0, [r9d]
+	move_vertically [r10d], [r9d], r13d
+	mov r9d, [T]
+	movups xmm1, [r9d]
+	addps xmm0, xmm1
+	movups [r9d], xmm0
 	move_vertically [r9d], [r10d], r13d
 %endmacro
 
@@ -136,7 +145,7 @@ section .text
 	cmp r13d, r10d
 	jb %%add_line_N_loop
 	
-	mov word [r10d], 0		;make margin equal to zero
+	mov dword [r10d], 0		;make margin equal to zero
 	
 	add esi, r12d
 	add edi, r12d
@@ -150,12 +159,56 @@ section .text
 	jb %%add_line_N_loop
 %endmacro
 
-%macro multiply_all 1
+%macro add_column_vertically 2
+	mov r13d, [M1]			
+	add r13d, r12d
+	add r13d, %1
+	mov r14d, [M2]
+	add r14d, r12d
+	add r14d, %2
+	mov esi, r13d			; Store the initial values for current column
+	mov edi, r14d
+	
+%%add_column_vertically_loop:
+	; Add 4 column cells starting at r14d to r13d
+	add_column
+	
+	; Move 4 rows down
+	add r13d, r12d
+	add r13d, r12d
+	add r13d, r12d
+	add r13d, r12d	
+
+	; Check if we are finished row
+	mov r10d, [M1]
+	add r10d, [ME]
+	cmp r13d, r10d
+	jb %%add_column_vertically_loop
+
+	; Move to the next pair of collumns
+	add esi, 4
+	add edi, 4
+	mov r13d, esi
+	mov r14d, edi
+	
+	; Check if we are finished all collumns (there are W columns each sizeof(float) width)
+	mov eax, [W]
+	mov ebx, 4
+	mul ebx
+	mov r10d, eax
+	add r10d, [M1]
+	add r10d, r12d
+	cmp r13d, r10d
+	jb %%add_column_vertically_loop
+	
+%endmacro
+
+%macro multiply_all 2
 	movss xmm1, %1
 	shufps xmm1, xmm1, 0x00
 	mov r13d, [M1]			
 	add r13d, r12d
-	mov r14d, [M2]
+	mov r14d, %2
 	add r14d, r12d
 
 %%multiply_all_loop:
@@ -239,7 +292,7 @@ step:
 	cmemcpy [M1], rsi, rax
 
 ; Stage1 - multiply all by 5
-	multiply_all [PIEC]
+	multiply_all [PIEC], [M2]
 
 ; Stage2 - multiply left/right edge by 3/5. They should be multiplied by 3 not 5 as they have only 3 neighbors
 stage_2_prep:
@@ -250,13 +303,13 @@ stage_2_prep:
 
 stage_2:	
 	;left edge
-	stage_2_multipification
+	multiply_column
 	
 	add r13d, r12d
 	sub r13d, 20
 
 	;right edge
-	stage_2_multipification
+	multiply_column
 		
 	add r13d, r12d
 	add r13d, r12d
@@ -269,11 +322,39 @@ stage_2:
 	cmp r13d, r10d
 	jb stage_2
 	
-; Stage 3,4,5 - add N, NW, NE neigbor to each cell
+; Stage 3,4,5 - add N, NW, NE neighbor to each cell
 	add_line_N 0, 0
 	add_line_N 4, 0
 	add_line_N 0, 4
 
+; Stage 6,7 - add E, W neighbor to each cell
+	add_column_vertically 4, 0
+	add_column_vertically 0, 4
+
+; Stage 8 - multiply by the weight
+	multiply_all [E], [M1]
+	
+; Stage 9 - add base value
+stage_9_prep:
+	mov r13d, [M1]			
+	add r13d, r12d
+	mov r14d, [M2]
+	add r14d, r12d
+
+stage_9:
+	movups xmm0, [r14d]
+	movups xmm1, [r13d]
+	addps xmm0, xmm1
+	movups [r13d], xmm0
+	
+	add r13d, 16
+	add r14d, 16
+	
+	mov r10d, [M1]
+	add r10d, [ME]
+	
+	cmp r13d, r10d
+	jb stage_9
 
 ; Stage 10 - swap pointers 
 stage_10:
