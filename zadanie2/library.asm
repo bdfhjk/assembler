@@ -8,6 +8,7 @@ global N
 
 extern malloc
 extern memcpy
+extern memset
 
 global start
 global step
@@ -23,7 +24,8 @@ T		resq 1	; temporary space for constants
 n		resq 1	; number of steps
 N		resq 1	; steps matrix
 MT		resq 1	; initial matrix passed to start pointer
-ME		resq 1	; pointer for next to the last element of M2
+ME		resq 1	; real size of matrix M1 and M2
+TE		resq 1	; real size of matrix T
 
 section .data
 PIEC		  	dd   5.0
@@ -49,121 +51,114 @@ section .text
 	call memcpy
 %endmacro
 
-%macro stage_2_multipification 0
-	mov r9d, 	      r13d
+%macro cmemset 3
+	mov rdi, %1
+	mov rsi, %2
+	mov rdx, %3
+	call memset
+%endmacro
+
+
+%macro move_vertically 3
+	mov r9d, 	      %3
 	mov r10d,	      [T]
-	movmm4 	 [r10d],  [r9d]
-	
+	movmm4 	 %1, %2
+	mov rax, 0
+
+%%move_vertically_step:
 	add r9d,	r12d
 	add r10d, 4
-	movmm4 	 [r10d],  [r9d]
-	
-	add r9d,	r12d
-	add r10d, 4
-	movmm4 	 [r10d],  [r9d]
-	
-	add r9d,	r12d
-	add r10d, 4
-	movmm4 	 [r10d],  [r9d]
-		
+	movmm4 	 %1, %2
+	inc rax
+	cmp rax, 3
+	jle %%move_vertically_step	
+%endmacro 
+
+
+%macro stage_2_multipification 0
+	move_vertically [r10d], [r9d], r13d
+
 	mov r9d, [T]
 	movups xmm0, [r9d]
 	mulps xmm0, xmm1
 	movups [r9d], xmm0
 
-	mov r9d, 	      r13d
-	mov r10d,	      [T]
-	movmm4 	[r9d], [r10d]
-
-	add r9d,	r12d
-	add r10d, 4
-	movmm4 	 [r9d],  [r10d]
-	
-	add r9d,	r12d
-	add r10d, 4
-	movmm4 	 [r9d],  [r10d]
-	
-	add r9d,	r12d
-	add r10d, 4
-	movmm4 	 [r9d],  [r10d]
-
+	move_vertically [r9d], [r10d], r13d
 %endmacro
 
-start:
-	enter 0,0
-	push r12
-	push r13
-	push rbx
-	
-	; Save local variables to global memory
-	mov [W], rdi
-	mov [H], rsi
-	mov [MT], rdx
-	
-	; Convert float passed as double to float.
-	cvtsd2ss xmm1, xmm0
-	movss [E], xmm1
-	
-	; Calculate size with overflow protection = [(W+4) * (H+4)] * sizeof(float)
-	mov rax, [W]
-	add rax, 5		; for segv prevention
-	mov rbx, [H]		
-	add rbx, 5		; for segv prevention
-	mul rbx
-	mov rbx, 4
-	mul rbx
-	mov r12, rax
-	
-	; Calculate real size (W*H) * sizeof(float)
-	mov rax, [W]
-	mov rbx, [H]		
-	mul rbx
-	mov rbx, 4
-	mul rbx
-	mov r13, rax
-	
-	mov rax, [H]
-	mov rbx, 4
-	mul rbx
-	mov r11, rax
-	
-	cmalloc [M2], r12
-	cmalloc [M1], r12
-	cmalloc [T], r11 
-	cmemcpy [M1], [MT], r13
-	cmemcpy [M2], [MT], r13	
-	mov [ME], r13
-	
-	pop rbx
-	pop r13
-	pop r12
-	leave
-	ret
-	
-step:
+%macro prologue 0
 	enter 0,0
 	push r12
 	push r13
 	push r14
 	push r15
 	push rbx
-	mov eax, 4
-	mov ebx, [H]
-	mul ebx
-	mov r12d, eax
+%endmacro
 
-; Stage_0 - copy new initial values column
+%macro epilogue 0
+	pop rbx
+	pop r15
+	pop r14
+	pop r13
+	pop r12
+	leave
+	ret
+%endmacro
+
+%macro add_line_N 2
+; Stage4 - add NW neighbors
+	mov r13d, [M1]			
+	add r13d, r12d		; Set r13d to point a second line in M1
+	mov r14d, [M2]		; Set r14d to point a first line in M2
+	add r13d, %1			; Shift them by %1 / %2
+	add r14d, %2
+	mov esi, r13d			; Store the initial values for current line.
+	mov edi, r14d
 	
-; Stage1 - multiply all by 5
-stage_1_prep:
-	movss xmm1, [PIEC]
+%%add_line_N_loop:
+
+	; Addition using SSE
+	movups xmm0, [r13d]
+	movups xmm1, [r14d]
+	addps xmm0, xmm1
+	movups [r13d], xmm0
+	
+	; Moving to next 4 floats
+	add r13d, 16
+	add r14d, 16
+	
+	; Checking if we are by the end of line
+	mov r10d, esi
+	add r10d, r12d
+	sub r10d, 16		; Removing 16 = margin size
+	sub r10d, %1		; And removing shift
+	
+	cmp r13d, r10d
+	jb %%add_line_N_loop
+	
+	mov word [r10d], 0		;make margin equal to zero
+	
+	add esi, r12d
+	add edi, r12d
+	mov r13d, esi
+	mov r14d, edi
+	
+	mov r10d, [M1]
+	add r10d, [ME]
+	
+	cmp r13d, r10d
+	jb %%add_line_N_loop
+%endmacro
+
+%macro multiply_all 1
+	movss xmm1, %1
 	shufps xmm1, xmm1, 0x00
-	mov r13d, [M1]			;r14d store the relative write address for M1
+	mov r13d, [M1]			
 	add r13d, r12d
 	mov r14d, [M2]
 	add r14d, r12d
 
-stage_1:
+%%multiply_all_loop:
 	movups xmm0, [r14d]
 	mulps xmm0, xmm1
 	movups [r13d], xmm0
@@ -175,13 +170,82 @@ stage_1:
 	add r10d, [ME]
 	
 	cmp r13d, r10d
-	jb stage_1
+	jb %%multiply_all_loop
+%endmacro
+
+start:
+	prologue
+
+	; Save local variables to global memory
+	mov [W], rdi
+	mov [H], rsi
+	mov [MT], rdx
 	
+	; Convert float passed as double by calling convention back to float.
+	cvtsd2ss xmm1, xmm0
+	movss [E], xmm1
+	
+	; Calculat size of step table T = (H+4) * sizeof(float)
+	mov rax, [H]
+	add rax, 4
+	mov rbx, 4		; Size of float is equal to 4
+	mul rbx
+	mov r11, rax
+	mov [TE], r11	
+	
+	; Calculate size with overflow protection = [(W+5) * (H+5)] * sizeof(float)
+	mov rax, [W]
+	add rax, 5		; Adding 5 for SSE parallel instruction overhead
+	mov rbx, [H]		
+	add rbx, 5		; Adding 5 for SSE parallel instruction overhead
+	mul rbx
+	mov rbx, 4		; Size of float is equal to 4
+	mul rbx
+	mov r12, rax
+	
+	; Calculate real size of matrix M1 = (W*(H+4)) * sizeof(float)
+	mov rax, [W]
+	mov rbx, [H]
+	add rbx, 4
+	mul rbx
+	mov rbx, 4		; Size of float is equal to 4
+	mul rbx
+	mov r13, rax
+	mov [ME], r13
+		
+	; Execute memory allocations
+	cmalloc [T], r11
+	cmalloc [M2], r12
+	cmalloc [M1], r12
+	
+	; Initial zeroing
+	cmemset [M1], 0, r12
+	cmemset [M2], 0, r12
+
+	; Copy the initial matrix to allocated space
+	cmemcpy [M1], [MT], r13
+	cmemcpy [M2], [MT], r13	
+	
+	epilogue
+
+step:
+	prologue
+	mov r12d, [TE]
+
+; Stage_0 - copy new initial values column
+	mov rax, [H]
+	mov rbx, 4
+	mul rbx
+	cmemcpy [M1], rsi, rax
+
+; Stage1 - multiply all by 5
+	multiply_all [PIEC]
+
 ; Stage2 - multiply left/right edge by 3/5. They should be multiplied by 3 not 5 as they have only 3 neighbors
 stage_2_prep:
 	movss xmm1, [TRZY_PIATE]
 	shufps xmm1, xmm1, 0x00
-	mov r13d, [M1]			;r14d store the relative write address for M1
+	mov r13d, [M1]			
 	add r13d, r12d	
 
 stage_2:	
@@ -189,11 +253,11 @@ stage_2:
 	stage_2_multipification
 	
 	add r13d, r12d
-	sub r13d, 4
+	sub r13d, 20
 
 	;right edge
 	stage_2_multipification
-	
+		
 	add r13d, r12d
 	add r13d, r12d
 	add r13d, r12d
@@ -203,7 +267,13 @@ stage_2:
 	add r10d, [ME]
 	
 	cmp r13d, r10d
-	jb stage_1	
+	jb stage_2
+	
+; Stage 3,4,5 - add N, NW, NE neigbor to each cell
+	add_line_N 0, 0
+	add_line_N 4, 0
+	add_line_N 0, 4
+
 
 ; Stage 10 - swap pointers 
 stage_10:
@@ -212,14 +282,4 @@ stage_10:
 	mov [M1], ebx
 	mov [M2], eax
 
-	pop rbx
-	pop r15
-	pop r14
-	pop r13
-	pop r12
-	leave
-	ret
-
-
-
-	
+	epilogue

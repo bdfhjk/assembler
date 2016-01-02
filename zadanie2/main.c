@@ -12,7 +12,7 @@ void print(){
         {
                 for(j = 0; j < W; j++)
                 {
-		     printf("%f ", M2[j * H + i]);
+		     printf("%f ", M2[j * (H + 4) + i]);
                      //printf("0x%X ", *(unsigned int*)&(M2[j * H + i]));
                 }
                 printf("\n");
@@ -20,54 +20,14 @@ void print(){
 	printf("\n");
 }
 
-/*
-	C equivalent of start procedure
-*/
-void start_c(int szer, int wys, float* M, float waga){
-	W = szer;
-	H = wys;
-	E = waga;
-
-	M1 = malloc((W+4) * (H+4) * sizeof(float));
-	M2 = malloc((W+4) * (H+4) * sizeof(float));
-	
-	
-	memcpy(M1, M, (W*H)*sizeof(float));
-	memcpy(M2, M, (W*H)*sizeof(float));
-}
-
-void step_c(float T[]){
-	int i, j;
-
-	for(i=0; i < H; i++)
-		M1[0*H + i] = T[i];
-
-	for(i=1; i < W; i++)
-		for(j=0; j < H; j++){
-			M1[i *H + j] += E * (M2[i*H + j] - M2[(i-1)*H +j]);
-			if (j > 0) {
-				M1[i*H + j] += E * (M2[i*H + j] - M2[(i-1)*H + (j-1)]);
-				M1[i*H + j] += E * (M2[i*H + j] - M2[i*H + (j-1)]);
-			}
-			if (j < H-1) {
-				M1[i*H + j] += E * (M2[i*H + j] - M2[(i-1)*H + (j+1)]);
-				M1[i*H + j] += E * (M2[i*H + j] - M2[i*H + (j+1)]);
-			}
-		}
-	
-	float *_T = M1;
-	M1 = M2;
-	M2 = _T;
-}
-
 void load(){
         int i, j, szer, wys;
 	float *M, waga;
         scanf("%d %d %f", &szer, &wys, &waga);
-	M = malloc(szer*wys*sizeof(float));
+	M = malloc(szer*(wys+4)*sizeof(float));
         for(i = 0; i < wys; i++)
                 for(j = 0; j < szer; j++){
-                        scanf("%f", &M[j * wys + i]);      //storing matrix in transposed form
+                        scanf("%f", &M[j * (wys + 4) + i]);      //storing matrix in transposed form with 4 float zeros right margin
                 }
 
         scanf("%d", &n);
@@ -86,7 +46,7 @@ int main(int argc, char* args[]){
 	print();
 	T = malloc(H * sizeof(float));
 	for(i = 0; i < n; i++){
-		//memcpy(T, N + i*H, H * sizeof(float)); 
+		memcpy(T, N + i*H, H * sizeof(float)); 
 		step(T);
 		print();
 	}
