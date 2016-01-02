@@ -38,8 +38,8 @@ section .text
 %endmacro
 
 %macro movmm4 2
-	mov r15, %2
-	mov %1, r15
+	mov r15d, %2
+	mov %1, r15d
 %endmacro
 
 %macro cmemcpy 3
@@ -308,10 +308,7 @@ stage_2:
 	;right edge
 	multiply_column
 		
-	add r13, r12
-	add r13, r12
-	add r13, r12
-	add r13, r12	
+	lea r13, [4*r12 + r13]
 	
 	mov r10, [M1]
 	add r10, [ME]
