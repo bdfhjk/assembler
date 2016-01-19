@@ -14,10 +14,10 @@ global start
 global step
 
 section .bss
-W		resq	1	; width
-H		resq	1	; height
-E		resq	1	; weight
-M1		resq	1	; base matrix pointer
+W		resq 1	; width
+H		resq 1	; height
+E		resq 1	; weight
+M1		resq 1	; base matrix pointer
 M2		resq 1	; result matrix pointer
 T		resq 1	; temporary space for constants
 n		resq 1	; number of steps
