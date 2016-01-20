@@ -27,8 +27,8 @@ ME		resq 1	; real size of matrix M1 and M2
 TE		resq 1	; real size of matrix T
 
 section .data
-PIEC		  	dd   5.0
-TRZY_PIATE 	dd   0.6
+PIEC		  	dd   -5.0
+TRZY_PIATE 	    dd   0.6
 
 section .text
 %macro cmalloc 2
@@ -188,9 +188,9 @@ section .text
 	mov r13, rsi
 	mov r14, rdi
 	
-	; Check if we are finished all collumns (there are W columns each sizeof(float) width)
-	mov rax, [W]
-	shl rax, 2
+	; Check if we are finished all collumns (there are H columns each sizeof(float) width)
+	mov rax, [H]
+    shl rax, 2
 	mov r10, rax
 	add r10, [M1]
 	add r10, r12
@@ -322,11 +322,11 @@ stage_2:
 ; Stage 6,7 - add E, W neighbor to each cell
 	add_column_vertically 4, 0
 	add_column_vertically 0, 4
-
-; Stage 8 - multiply by the weight
+;
+;; Stage 8 - multiply by the weight
 	multiply_all [E], [M1]
-	
-; Stage 9 - add base value
+;	
+;; Stage 9 - add base value
 stage_9_prep:
 	mov r13, [M1]			
 	add r13, r12
@@ -338,13 +338,13 @@ stage_9:
 	movups xmm1, [r13]
 	addps xmm0, xmm1
 	movups [r13], xmm0
-	
+;	
 	add r13, 16
 	add r14, 16
-	
+;	
 	mov r10, [M1]
 	add r10, [ME]
-	
+;	
 	cmp r13, r10
 	jb stage_9
 
